@@ -8,8 +8,8 @@ const projectId = process.env.SANITY_STUDIO_PROJECT_ID || 'your-projectID'
 const dataset = process.env.SANITY_STUDIO_DATASET || 'production'
 
 export default defineConfig({
-  name: 'sanity-template-astro-clean',
-  title: 'Sanity Astro Starter',
+  name: 'apn-website',
+  title: 'APN',
   projectId,
   dataset,
   plugins: [structureTool(), visionTool()],

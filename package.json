@@ -1,6 +1,6 @@
 {
   "name": "apn",
-  "description": "Minimal Astro site with Sanity Studio",
+  "description": "APN Website",
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace=astro-app\" \"npm run dev --workspace=studio\""
   },
@@ -13,9 +13,9 @@
     "Real-time"
   ],
   "bugs": {
-    "url": "https://github.com/sanity-io/sanity-template-astro-clean/issues"
+    "url": "https://github.com/apnworksdev/apn-website"
   },
-  "homepage": "https://github.com/sanity-io/sanity-template-astro-clean#readme",
+  "homepage": "https://github.com/apnworksdev/apn-website",
   "workspaces": [
     "studio",
     "astro-app"
