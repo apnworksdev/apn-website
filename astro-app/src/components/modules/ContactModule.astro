@@ -1,0 +1,31 @@
+---
+import type { ContactModule } from "../../utils/sanity";
+
+interface Props {
+  module: ContactModule;
+}
+
+const { module } = Astro.props;
+---
+
+<section class="contact-module">
+  {module.contacts && module.contacts.length > 0 && (
+    <div class="contact-module__list">
+      {module.contacts.map((contact) => (
+        <div class="contact-module__item">
+          {contact.title && (
+            <h3 class="contact-module__title">{contact.title}</h3>
+          )}
+          {contact.url && (
+            <a
+              href={contact.url}
+              class="contact-module__link"
+            >
+              {contact.text || contact.url}
+            </a>
+          )}
+        </div>
+      ))}
+    </div>
+  )}
+</section>

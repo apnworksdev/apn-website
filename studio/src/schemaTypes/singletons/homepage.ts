@@ -1,0 +1,51 @@
+import {defineArrayMember, defineField, defineType} from 'sanity'
+import hero from '../modules/hero'
+import tableOfWorks from '../modules/tableOfWorks'
+import textModule from '../modules/text'
+import contactModule from '../modules/contact'
+import dataBox from '../modules/dataBox'
+import featuredProject from '../modules/featuredProject'
+
+export default defineType({
+  name: 'homepage',
+  title: 'Homepage',
+  type: 'document',
+  // groups: [
+  //   {
+  //     name: 'info',
+  //     title: 'Info',
+  //     default: true,
+  //   },
+  //   {
+  //     name: 'modules',
+  //     title: 'Modules',
+  //     default: false,
+  //   },
+  // ],
+  fields: [
+    defineField({
+      name: 'modules',
+      title: 'Modules',
+      type: 'array',
+      of: [
+        defineArrayMember(hero),
+        defineArrayMember(tableOfWorks),
+        defineArrayMember(textModule),
+        defineArrayMember(contactModule),
+        defineArrayMember(dataBox),
+        defineArrayMember(featuredProject),
+      ],
+      // group: 'modules',
+    }),
+  ],
+  preview: {
+    select: {
+      title: 'title',
+    },
+    prepare({title}) {
+      return {
+        title: title || 'Homepage',
+      }
+    },
+  },
+})

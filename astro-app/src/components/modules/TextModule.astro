@@ -1,0 +1,16 @@
+---
+import type { TextModule } from "../../utils/sanity";
+import PortableText from "../PortableText.astro";
+
+interface Props {
+  module: TextModule;
+}
+
+const { module } = Astro.props;
+const columns = module.columns || 1;
+const alignment = module.alignment || "justify";
+---
+
+<section class="text-module" data-columns={columns} data-alignment={alignment}>
+  {module.text && <PortableText content={module.text} />}
+</section>

@@ -1,0 +1,147 @@
+/* ------------------------------------------------------------ */
+
+/*                        PSEUDO CLASSES                        */
+
+/* ------------------------------------------------------------ */
+
+*:focus,
+*:focus-visible {
+  outline: none!important;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0)!important;
+  box-shadow: none!important;
+}
+
+::-webkit-scrollbar {
+  display: none;
+  -webkit-appearance: none;
+  width: 0 !important;
+}
+
+/* ------------------------------------------------------------ */
+
+/*                           ELEMENTS                           */
+
+/* ------------------------------------------------------------ */
+
+*,
+*::before,
+*::after {
+  font-family: inherit;
+  font-weight: inherit;
+  font-size: inherit;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  box-sizing: border-box;
+  color: inherit;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*::selection {
+  background: var(--selection-background-color);
+  color: var(--selection-foreground-color);
+}
+
+html {
+  background-color: #FAF7F4;
+  color: #2E2929;
+  overflow-x: hidden;
+}
+
+ul,
+ol,
+menu {
+  list-style: none;
+}
+
+a,
+input,
+button,
+fieldset,
+textarea {
+  all: unset;
+}
+
+a,
+button {
+  cursor: pointer;
+}
+
+input[hidden] {
+  display: none;
+}
+
+textarea::placeholder,
+input::placeholder {
+  color: inherit;
+}
+
+summary {
+  list-style: none;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--background-color) inset !important;
+}
+
+/* ------------------------------------------------------------ */
+
+/*                       UTILITY CLASSES                        */
+
+/* ------------------------------------------------------------ */
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+.small-caps {
+  font-variant-caps: small-caps;
+  letter-spacing: 0.12rem;
+}
+
+.font-s {
+  font-size: var(--font-s);
+}
+
+.font-m {
+  font-size: var(--font-m);
+}
+
+.font-l {
+  font-size: var(--font-l);
+}
+
+.font-xl {
+  font-size: var(--font-xl);
+}
+
+.sans {
+  font-family: 'Gerstner';
+  font-size: 10px;
+  line-height: 10px;
+  letter-spacing: 0.05em;
+  padding: 3px 0 7px;
+  display: inline-block;
+}
+
+@media only screen and (min-width: 820px) {
+  .hide-desktop {
+    display: none!important;
+  }
+}
+
+@media only screen and (max-width: 820px) {
+  .hide-mobile {
+    display: none!important;
+  }
+
+  .sans {
+    font-size: 8px;
+    line-height: 8px;
+    padding: 2px 0 5px;
+  }
+}

@@ -1,0 +1,61 @@
+---
+import type { FeaturedProjectModule } from "../../utils/sanity";
+import { urlFor } from "../../utils/image";
+import PortableText from "../PortableText.astro";
+
+interface Props {
+  module: FeaturedProjectModule;
+}
+
+const { module } = Astro.props;
+const project = module.project;
+---
+
+<section class="featured-project">
+  {project && (
+    <div class="featured-project__content">
+      <div class="featured-project__header">
+        {project.title && (
+          <h2 class="featured-project__title">
+            {project.slug?.current ? (
+              <a href={`/post/${project.slug.current}`}>
+                {project.title}
+              </a>
+            ) : (
+              project.title
+            )}
+          </h2>
+        )}
+        {project.description && (
+          <p class="featured-project__description">
+            {project.description}
+          </p>
+        )}
+      </div>
+
+      {module.text && (
+        <div class="featured-project__text">
+          <PortableText content={module.text} />
+        </div>
+      )}
+
+      {module.media && module.media.length > 0 && (
+        <div class="featured-project__media">
+          {module.media.map((mediaItem) => {
+            if (mediaItem._type === "image" && mediaItem.asset) {
+              return (
+                <div class="featured-project__image">
+                  <img
+                    src={urlFor(mediaItem.asset).width(1200).url()}
+                    alt={mediaItem.alt || project.title || ""}
+                  />
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
+      )}
+    </div>
+  )}
+</section>

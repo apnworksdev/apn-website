@@ -1,0 +1,46 @@
+---
+import type { Image, ImageAsset } from "@sanity/types";
+import { urlFor } from "../utils/image";
+
+interface Props {
+  image: Image | ImageAsset;
+  alt?: string;
+  width?: number;
+  height?: number;
+  sizes?: string;
+  loading?: "lazy" | "eager";
+  class?: string;
+}
+
+const {
+  image,
+  alt = "",
+  width = 1200,
+  height,
+  sizes = "100vw",
+  loading = "lazy",
+  class: className,
+} = Astro.props;
+
+const imageUrl = urlFor(image);
+const src = imageUrl.width(width).url();
+const srcset = [
+  imageUrl.width(400).url() + " 400w",
+  imageUrl.width(800).url() + " 800w",
+  imageUrl.width(1200).url() + " 1200w",
+  imageUrl.width(1600).url() + " 1600w",
+].join(", ");
+
+const altText = alt || (typeof image === "object" && "alt" in image && typeof image.alt === "string" ? image.alt : "");
+---
+
+<img
+  src={src}
+  srcset={srcset}
+  sizes={sizes}
+  alt={altText}
+  width={width}
+  height={height}
+  loading={loading}
+  class={className}
+/>

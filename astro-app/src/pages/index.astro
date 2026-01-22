@@ -1,12 +1,20 @@
 ---
-import Card from "../components/Card.astro";
-import Welcome from "../components/Welcome.astro";
 import Layout from "../layouts/Layout.astro";
-import { getPosts } from "../utils/sanity";
+import { getHomepage } from "../utils/sanity";
+import ModuleRenderer from "../components/ModuleRenderer.astro";
+import '../styles/pages/homepage.css';
 
-const posts = await getPosts();
+const homepage = await getHomepage();
 ---
 
-<Layout title="Welcome to Astro.">
-  <h1>Hello Test</h1>
+<Layout title="Home">
+  <div class="homepage__container">
+    {homepage?.modules && homepage.modules.length > 0 ? (
+      homepage.modules.map((module) => (
+        <ModuleRenderer module={module} />
+      ))
+    ) : (
+      <p>No content available. Please add modules to your homepage in Sanity Studio.</p>
+    )}
+  </div>
 </Layout>

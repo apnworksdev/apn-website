@@ -1,0 +1,32 @@
+---
+import type { DataBoxModule } from "../../utils/sanity";
+import PortableText from "../PortableText.astro";
+
+interface Props {
+  module: DataBoxModule;
+}
+
+const { module } = Astro.props;
+---
+
+<section class="data-box">
+  {module.items && module.items.length > 0 && (
+    <div class="data-box__grid">
+      {module.items.map((item) => {
+        const columns = item.columns || 1;
+        return (
+          <div class="data-box__item" data-columns={columns}>
+            {item.title && (
+              <h3 class="data-box__title">{item.title}</h3>
+            )}
+            {item.text && (
+              <div class="data-box__text">
+                <PortableText content={item.text} />
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  )}
+</section>

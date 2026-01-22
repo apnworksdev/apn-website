@@ -1,0 +1,6 @@
+html {
+  background-color: var(--cream);
+  color: var(--black);
+  font-family: 'JJannon', serif;
+  letter-spacing: 0.06rem;
+}

@@ -1,0 +1,43 @@
+---
+import type { HeroModule } from "../../utils/sanity";
+import SanityImage from "../SanityImage.astro";
+
+interface Props {
+  module: HeroModule;
+}
+
+const { module } = Astro.props;
+---
+
+<section class="hero module">
+  <div class="hero__title">
+    <h1 class="font-xl">Apn</h1>
+    <p class="font-m small-caps">or, a</p>
+    <h2 class="font-l">
+      <span class="small-caps">Design & Development</span>
+      <span class="font-m">studio</span>
+    </h2>
+  </div>
+
+  {module.image && (
+    <div class="hero__image">
+      <SanityImage
+        image={module.image}
+        alt={module.image.alt || ""}
+        width={1200}
+      />
+    </div>
+  )}
+
+  {module.text && (
+    <div class="hero__text font-m">
+      <p>{module.text}</p>
+    </div>
+  )}
+
+  {module.disclaimer && (
+    <div class="hero__disclaimer font-m">
+      <p>{module.disclaimer}</p>
+    </div>
+  )}
+</section>

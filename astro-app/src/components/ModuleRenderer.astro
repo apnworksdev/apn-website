@@ -1,0 +1,22 @@
+---
+import type { HomepageModule } from "../utils/sanity";
+import Hero from "./modules/Hero.astro";
+import TableOfWorks from "./modules/TableOfWorks.astro";
+import TextModule from "./modules/TextModule.astro";
+import ContactModule from "./modules/ContactModule.astro";
+import DataBox from "./modules/DataBox.astro";
+import FeaturedProject from "./modules/FeaturedProject.astro";
+
+interface Props {
+  module: HomepageModule;
+}
+
+const { module } = Astro.props;
+---
+
+{module._type === "hero" && <Hero module={module} />}
+{module._type === "tableOfWorks" && <TableOfWorks module={module} />}
+{module._type === "textModule" && <TextModule module={module} />}
+{module._type === "contactModule" && <ContactModule module={module} />}
+{module._type === "dataBox" && <DataBox module={module} />}
+{module._type === "featuredProject" && <FeaturedProject module={module} />}

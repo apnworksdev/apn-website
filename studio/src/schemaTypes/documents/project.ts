@@ -1,10 +1,5 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
-/**
- * Post schema.  Define and edit the fields for the 'post' content type.
- * Learn more: https://www.sanity.io/docs/schema-types
- */
-
 export default defineType({
   name: 'project',
   title: 'Project',
@@ -18,11 +13,12 @@ export default defineType({
     {
       name: 'data',
       title: 'Data',
-      default: true,
+      default: false,
     },
     {
       name: 'content',
       title: 'Content',
+      default: true,
     },
   ],
   fields: [
@@ -46,29 +42,7 @@ export default defineType({
     defineField({
       name: 'thumbnail',
       title: 'Thumbnail',
-      type: 'array',
-      of: [
-        defineArrayMember({
-          type: 'image',
-          options: {
-            hotspot: true,
-          },
-          fields: [
-            defineField({
-              name: 'alt',
-              title: 'Alternative text',
-              type: 'string',
-            }),
-          ],
-        }),
-        defineArrayMember({
-          type: 'file',
-          title: 'Video',
-          options: {
-            accept: 'video/*',
-          },
-        }),
-      ],
+      type: 'mediaArray',
       validation: (rule) => rule.max(1),
       group: 'main',
     }),
@@ -131,31 +105,7 @@ export default defineType({
             defineField({
               name: 'text',
               title: 'Text',
-              type: 'array',
-              of: [
-                defineArrayMember({
-                  type: 'block',
-                  styles: [],
-                  lists: [],
-                  marks: {
-                    decorators: [],
-                    annotations: [
-                      {
-                        title: 'URL',
-                        name: 'link',
-                        type: 'object',
-                        fields: [
-                          {
-                            title: 'URL',
-                            name: 'href',
-                            type: 'url',
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                }),
-              ],
+              type: 'textLinks',
             }),
           ],
         }),
@@ -165,32 +115,14 @@ export default defineType({
     defineField({
       name: 'links',
       title: 'Links',
-      type: 'array',
-      of: [
-        defineArrayMember({
-          type: 'block',
-          styles: [],
-          lists: [],
-          marks: {
-            decorators: [],
-            annotations: [
-              {
-                title: 'URL',
-                name: 'link',
-                type: 'object',
-                fields: [
-                  {
-                    title: 'URL',
-                    name: 'href',
-                    type: 'url',
-                  },
-                ],
-              },
-            ],
-          },
-        }),
-      ],
-      group: 'data',
+      type: 'textLinks',
+      group: 'data'
+    }),
+    defineField({
+      name: 'media',
+      title: 'Media',
+      type: 'mediaArray',
+      group: 'content',
     }),
   ],
   preview: {

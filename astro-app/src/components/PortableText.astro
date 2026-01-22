@@ -1,0 +1,56 @@
+---
+import type { PortableTextBlock } from "@portabletext/types";
+
+interface Props {
+  content?: PortableTextBlock[];
+}
+
+const { content } = Astro.props;
+
+if (!content || content.length === 0) {
+  return null;
+}
+---
+
+<div class="portable-text">
+  {content.map((block: any) => {
+    if (block._type !== "block") return null;
+    
+    const Tag = block.style === "normal" ? "p" : block.style || "p";
+    
+    const children = block.children?.map((child: any) => {
+      if (child._type !== "span") return null;
+      
+      let text = child.text || "";
+      let hasLink = false;
+      let linkHref = "#";
+      
+      if (child.marks && child.marks.length > 0) {
+        child.marks.forEach((mark: string) => {
+          const markDef = block.markDefs?.find((def: any) => def._key === mark);
+          if (markDef?._type === "link") {
+            hasLink = true;
+            linkHref = markDef.href || "#";
+          }
+        });
+      }
+      
+      if (hasLink) {
+        return { type: "link", href: linkHref, text };
+      }
+      
+      return { type: "text", text };
+    }).filter(Boolean) || [];
+    
+    return (
+      <Tag>
+        {children.map((child: any) => {
+          if (child.type === "link") {
+            return <a href={child.href}>{child.text}</a>;
+          }
+          return child.text;
+        })}
+      </Tag>
+    );
+  })}
+</div>
