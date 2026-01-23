@@ -1,20 +1,21 @@
 :root {
-  --gap: 10px;
-  --column: calc(((100vw) - (var(--gap) * 25)) / 24);
-  --separator-small: 13px;
-  --separator-medium: 26px;
-  --separator-large: 52px;
+  --gap: 12px;
+  --column: 52px;
+  --separator-small: 18px;
+  --separator-medium: 36px;
+  --separator-large: 72px;
+  --separator-xlarge: 144px;
 
   --cream: #FFFCF1;
   --black: #000000;
-
-  --font-s: 7px;
-  --font-m: 9px;
-  --font-l: 16px;
-  --font-xl: 24px;
 
   --font-s: 9px;
   --font-m: 12px;
   --font-l: 18px;
   --font-xl: 27px;
+
+  --font-s: 10px;
+  --font-m: 13px;
+  --font-l: 20px;
+  --font-xl: 30px;
 }

@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import { getHomepage } from "../utils/sanity";
 import ModuleRenderer from "../components/ModuleRenderer.astro";
 import '../styles/pages/homepage.css';
+import PortableText from "../components/PortableText.astro";
 
 const homepage = await getHomepage();
 ---
@@ -13,8 +14,12 @@ const homepage = await getHomepage();
       homepage.modules.map((module) => (
         <ModuleRenderer module={module} />
       ))
-    ) : (
-      <p>No content available. Please add modules to your homepage in Sanity Studio.</p>
-    )}
+    ) : null }
+
+    {homepage?.credits && homepage.credits.length > 0 ? (
+      <div class="homepage__credits">
+        <PortableText class="font-s" content={homepage.credits} />
+      </div>
+    ) : null }
   </div>
 </Layout>

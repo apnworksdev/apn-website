@@ -7,10 +7,15 @@ interface Props {
 }
 
 const { module } = Astro.props;
-const columns = module.columns || 1;
 const alignment = module.alignment || "justify";
+
+// Filter out text blocks without content
+const textBlocks = module.text?.filter((textBlock) => textBlock.content && textBlock.content.length > 0) || [];
+const columns = textBlocks.length;
 ---
 
-<section class="text-module" data-columns={columns} data-alignment={alignment}>
-  {module.text && <PortableText content={module.text} />}
+<section class="module module--text font-m" data-columns={columns} data-alignment={alignment}>
+  {textBlocks.map((textBlock) => (
+    <PortableText class="text-column" content={textBlock.content!} />
+  ))}
 </section>

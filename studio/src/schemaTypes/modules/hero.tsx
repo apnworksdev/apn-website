@@ -29,24 +29,18 @@ export default defineType({
     defineField({
       name: 'text',
       title: 'Text',
-      type: 'text',
-      rows: 3,
+      type: 'blockContent',
     }),
     defineField({
       name: 'disclaimer',
       title: 'Disclaimer',
-      type: 'text',
-      rows: 3,
+      type: 'blockContent',
     }),
   ],
   preview: {
-    select: {
-      text: 'text',
-    },
-    prepare({text}) {
+    prepare() {
       return { 
         title: 'Apn',
-        subtitle: text,
       }
     },
   },

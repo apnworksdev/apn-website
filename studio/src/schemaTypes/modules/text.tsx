@@ -1,4 +1,4 @@
-import {defineField, defineType} from 'sanity'
+import {defineArrayMember, defineField, defineType} from 'sanity'
 import { TextIcon } from '@sanity/icons'
 
 export default defineType({
@@ -10,21 +10,9 @@ export default defineType({
     defineField({
       name: 'text',
       title: 'Text',
-      type: 'textLinks',
-    }),
-    defineField({
-      name: 'columns',
-      title: 'Columns',
-      type: 'number',
-      options: {
-        list: [
-          {title: '1 Column', value: 1},
-          {title: '2 Columns', value: 2},
-          {title: '3 Columns', value: 3},
-        ],
-      },
-      initialValue: 1,
-      validation: (rule) => rule.required(),
+      type: 'array',
+      of: [defineArrayMember({type: 'textBlock'})],
+      validation: (rule) => rule.required().max(3),
     }),
     defineField({
       name: 'alignment',

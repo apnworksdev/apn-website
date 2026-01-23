@@ -35,6 +35,17 @@ export default defineType({
       options: {
         accept: 'video/*',
       },
+      fields: [
+        defineField({
+          name: 'poster',
+          title: 'Poster Image',
+          type: 'image',
+          description: 'Image shown before the video plays',
+          options: {
+            hotspot: true,
+          },
+        }),
+      ],
     }),
   ],
 })

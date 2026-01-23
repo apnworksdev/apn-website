@@ -1,7 +1,9 @@
 ---
-import type { FeaturedProjectModule } from "../../utils/sanity";
+import type { FeaturedProjectModule, FileAsset } from "../../utils/sanity";
+import type { ImageAsset } from "@sanity/types";
 import { urlFor } from "../../utils/image";
 import PortableText from "../PortableText.astro";
+import SanityImage from "../SanityImage.astro";
 
 interface Props {
   module: FeaturedProjectModule;
@@ -9,51 +11,101 @@ interface Props {
 
 const { module } = Astro.props;
 const project = module.project;
+
+// Helper function to wrap first letter of each word in <strong>
+function formatTitleWithStrongLetters(title: string) {
+  return title.split(/\s+/).map((word) => {
+    if (word.length === 0) return word;
+    const firstLetter = word[0];
+    const rest = word.slice(1);
+    return `<strong>${firstLetter}</strong>${rest}`;
+  }).join(' ');
+}
 ---
 
-<section class="featured-project">
+<section class="module--featured-project">
   {project && (
-    <div class="featured-project__content">
-      <div class="featured-project__header">
+    <div class="module--featured-project__content">
+      <div class="module--featured-project__header">
+        {module.label && (
+          <h3 class="module--featured-project__label font-s">
+            {module.label}
+          </h3>
+        )}
+
         {project.title && (
-          <h2 class="featured-project__title">
+          <h2 class="module--featured-project__title font-m small-caps">
             {project.slug?.current ? (
               <a href={`/post/${project.slug.current}`}>
-                {project.title}
+                <span set:html={formatTitleWithStrongLetters(project.title)} />
               </a>
             ) : (
-              project.title
+              <span set:html={formatTitleWithStrongLetters(project.title)} />
             )}
           </h2>
         )}
-        {project.description && (
-          <p class="featured-project__description">
-            {project.description}
+        
+        {module.showDesignedBy && (
+          <p class="module--featured-project__designed-by font-s">
+            Designed by {project.designedBy}
           </p>
         )}
       </div>
 
-      {module.text && (
-        <div class="featured-project__text">
-          <PortableText content={module.text} />
-        </div>
-      )}
-
       {module.media && module.media.length > 0 && (
-        <div class="featured-project__media">
+        <div class="module--featured-project__media">
           {module.media.map((mediaItem) => {
             if (mediaItem._type === "image" && mediaItem.asset) {
+              // ImageAsset doesn't have a direct 'url' property, FileAsset does
+              const isImageAsset = !("url" in mediaItem.asset);
+              if (isImageAsset) {
+                return (
+                  <div class="module--featured-project__image">
+                    <SanityImage
+                      image={mediaItem.asset as ImageAsset}
+                      alt={mediaItem.alt || project.title || ""}
+                      width={1200}
+                      sizes="(max-width: 768px) 100vw, 1200px"
+                      loading="lazy"
+                      class="module--featured-project__image-element media-element"
+                    />
+                  </div>
+                );
+              }
+            }
+            if (mediaItem._type === "file" && mediaItem.asset && "url" in mediaItem.asset) {
+              const fileAsset = mediaItem.asset as FileAsset;
+              // Get poster image URL if available
+              let posterUrl: string | undefined;
+              if (mediaItem.poster && mediaItem.poster.asset) {
+                const posterImageUrl = urlFor(mediaItem.poster.asset as ImageAsset).width(1200).url();
+                posterUrl = posterImageUrl;
+              }
               return (
-                <div class="featured-project__image">
-                  <img
-                    src={urlFor(mediaItem.asset).width(1200).url()}
-                    alt={mediaItem.alt || project.title || ""}
-                  />
+                <div class="module--featured-project__video">
+                  <video
+                    autoplay
+                    loop
+                    preload="metadata"
+                    muted
+                    playsinline
+                    class="module--featured-project__video-element media-element"
+                    poster={posterUrl}
+                  >
+                    <source src={fileAsset.url} type={fileAsset.mimeType || "video/mp4"} />
+                    Your browser does not support the video tag.
+                  </video>
                 </div>
               );
             }
             return null;
           })}
+        </div>
+      )}
+
+      {module.text && (
+        <div class="module--featured-project__text font-s">
+          <PortableText content={module.text} />
         </div>
       )}
     </div>

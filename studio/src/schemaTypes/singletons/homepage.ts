@@ -10,18 +10,18 @@ export default defineType({
   name: 'homepage',
   title: 'Homepage',
   type: 'document',
-  // groups: [
-  //   {
-  //     name: 'info',
-  //     title: 'Info',
-  //     default: true,
-  //   },
-  //   {
-  //     name: 'modules',
-  //     title: 'Modules',
-  //     default: false,
-  //   },
-  // ],
+  groups: [
+    {
+      name: 'modules',
+      title: 'Modules',
+      default: true,
+    },
+    {
+      name: 'info',
+      title: 'Info',
+      default: false,
+    },
+  ],
   fields: [
     defineField({
       name: 'modules',
@@ -35,7 +35,13 @@ export default defineType({
         defineArrayMember(dataBox),
         defineArrayMember(featuredProject),
       ],
-      // group: 'modules',
+      group: 'modules',
+    }),
+    defineField({
+      name: 'credits',
+      title: 'Credits',
+      type: 'blockContent',
+      group: 'info',
     }),
   ],
   preview: {

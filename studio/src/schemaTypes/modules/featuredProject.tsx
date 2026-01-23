@@ -1,4 +1,5 @@
 import {defineField, defineType} from 'sanity'
+import { StarIcon } from '@sanity/icons'
 
 /**
  * Featured Project module schema
@@ -8,7 +9,19 @@ export default defineType({
   name: 'featuredProject',
   title: 'Featured Project',
   type: 'object',
+  icon: StarIcon,
   fields: [
+    defineField({
+      name: 'label',
+      title: 'Label',
+      type: 'string',
+    }),
+    defineField({
+      name: 'showDesignedBy',
+      title: 'Show Designed By',
+      type: 'boolean',
+      initialValue: false,
+    }),
     defineField({
       name: 'project',
       title: 'Project',
@@ -19,7 +32,7 @@ export default defineType({
     defineField({
       name: 'text',
       title: 'Text',
-      type: 'textLinks',
+      type: 'blockContent',
     }),
     defineField({
       name: 'media',

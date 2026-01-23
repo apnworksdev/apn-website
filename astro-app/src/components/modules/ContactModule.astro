@@ -8,18 +8,18 @@ interface Props {
 const { module } = Astro.props;
 ---
 
-<section class="contact-module">
+<section class="module module--contact">
   {module.contacts && module.contacts.length > 0 && (
-    <div class="contact-module__list">
+    <div class="module--contact__list">
       {module.contacts.map((contact) => (
-        <div class="contact-module__item">
+        <div class="module--contact__item">
           {contact.title && (
-            <h3 class="contact-module__title">{contact.title}</h3>
+            <h3 class="module--contact__title font-s small-caps">{contact.title}</h3>
           )}
           {contact.url && (
             <a
               href={contact.url}
-              class="contact-module__link"
+              class="module--contact__link font-m"
             >
               {contact.text || contact.url}
             </a>

@@ -103,20 +103,36 @@ input:-webkit-autofill:active {
   letter-spacing: 0.12rem;
 }
 
+.small-caps-span {
+  display: inline-flex;
+}
+
+.small-caps-span-bold strong {
+  font-weight: 700;
+}
+
+.small-caps-span-italic + .small-caps-span-bold {
+  margin-left: 4px;
+}
+
 .font-s {
   font-size: var(--font-s);
+  line-height: 1.2;
 }
 
 .font-m {
   font-size: var(--font-m);
+  line-height: 1.2;
 }
 
 .font-l {
   font-size: var(--font-l);
+  line-height: 1;
 }
 
 .font-xl {
   font-size: var(--font-xl);
+  line-height: .9;
 }
 
 .sans {

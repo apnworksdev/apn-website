@@ -1,5 +1,6 @@
 ---
 import type { TableOfWorksModule } from "../../utils/sanity";
+import type { ImageAsset } from "@sanity/types";
 import { urlFor } from "../../utils/image";
 
 interface Props {
@@ -9,7 +10,7 @@ interface Props {
 const { module } = Astro.props;
 ---
 
-<section class="table-of-works">
+<!-- <section class="table-of-works">
   {module.projects && module.projects.length > 0 && (
     <div class="table-of-works__grid">
       {module.projects.map((project) => (
@@ -17,10 +18,14 @@ const { module } = Astro.props;
           href={project.slug?.current ? `/post/${project.slug.current}` : "#"}
           class="table-of-works__item"
         >
-          {project.thumbnail && project.thumbnail[0] && project.thumbnail[0].asset && (
+          {project.thumbnail && 
+           project.thumbnail[0] && 
+           project.thumbnail[0]._type === "image" &&
+           project.thumbnail[0].asset && 
+           !("url" in project.thumbnail[0].asset) && (
             <div class="table-of-works__thumbnail">
               <img
-                src={urlFor(project.thumbnail[0].asset).width(600).url()}
+                src={urlFor(project.thumbnail[0].asset as ImageAsset).width(600).url()}
                 alt={project.thumbnail[0].alt || project.title || ""}
               />
             </div>
@@ -44,4 +49,4 @@ const { module } = Astro.props;
       ))}
     </div>
   )}
-</section>
+</section> -->

@@ -9,18 +9,20 @@ interface Props {
 const { module } = Astro.props;
 ---
 
-<section class="data-box">
+<section class="module module--data-box">
   {module.items && module.items.length > 0 && (
-    <div class="data-box__grid">
+    <div class="module--data-box__grid">
       {module.items.map((item) => {
         const columns = item.columns || 1;
         return (
-          <div class="data-box__item" data-columns={columns}>
+          <div class="module--data-box__item" data-columns={columns}>
             {item.title && (
-              <h3 class="data-box__title">{item.title}</h3>
+              <div class="module--data-box__title-container font-s small-caps">
+                <h3 class="module--data-box__title">{item.title}</h3><span class="module--data-box__title-dots">:</span>
+              </div>
             )}
             {item.text && (
-              <div class="data-box__text">
+              <div class="module--data-box__text font-m">
                 <PortableText content={item.text} />
               </div>
             )}

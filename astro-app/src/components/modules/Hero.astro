@@ -1,6 +1,7 @@
 ---
 import type { HeroModule } from "../../utils/sanity";
 import SanityImage from "../SanityImage.astro";
+import PortableText from "../PortableText.astro";
 
 interface Props {
   module: HeroModule;
@@ -9,7 +10,7 @@ interface Props {
 const { module } = Astro.props;
 ---
 
-<section class="hero module">
+<section class="module module--hero">
   <div class="hero__title">
     <h1 class="font-xl">Apn</h1>
     <p class="font-m small-caps">or, a</p>
@@ -31,13 +32,13 @@ const { module } = Astro.props;
 
   {module.text && (
     <div class="hero__text font-m">
-      <p>{module.text}</p>
+      <PortableText content={module.text} />
     </div>
   )}
 
   {module.disclaimer && (
     <div class="hero__disclaimer font-m">
-      <p>{module.disclaimer}</p>
+      <PortableText content={module.disclaimer} />
     </div>
   )}
 </section>

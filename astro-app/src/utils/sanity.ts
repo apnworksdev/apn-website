@@ -22,6 +22,7 @@ export async function getHomepage(): Promise<Homepage | null> {
   return await sanityClient.fetch(
     groq`*[_type == "homepage"][0]{
       _id,
+      credits,
       modules[]{
         _type,
         _key,
@@ -44,8 +45,9 @@ export async function getHomepage(): Promise<Homepage | null> {
           }
         },
         _type == "textModule" => {
-          text,
-          columns,
+          text[]{
+            content
+          },
           alignment
         },
         _type == "contactModule" => {
@@ -68,10 +70,33 @@ export async function getHomepage(): Promise<Homepage | null> {
             title,
             slug,
             thumbnail,
-            description
+            description,
+            designedBy
           },
+          label,
+          showDesignedBy,
           text,
-          media
+          media[]{
+            _type,
+            _key,
+            _type == "image" => {
+              asset->,
+              alt
+            },
+            _type == "file" => {
+              asset->{
+                _id,
+                url,
+                originalFilename,
+                mimeType,
+                size
+              },
+              poster{
+                asset->,
+                alt
+              }
+            }
+          }
         }
       }
     }`
@@ -91,6 +116,7 @@ export interface Post {
 export interface Homepage {
   _id: string;
   modules?: HomepageModule[];
+  credits?: PortableTextBlock[];
 }
 
 export type HomepageModule =
@@ -105,8 +131,8 @@ export interface HeroModule {
   _type: "hero";
   _key: string;
   image?: ImageAsset & { alt?: string };
-  text?: string;
-  disclaimer?: string;
+  text?: PortableTextBlock[];
+  disclaimer?: PortableTextBlock[];
 }
 
 export interface TableOfWorksModule {
@@ -115,10 +141,16 @@ export interface TableOfWorksModule {
   projects?: Project[];
 }
 
+export interface TextBlock {
+  _type: "textBlock";
+  _key: string;
+  content?: PortableTextBlock[];
+}
+
 export interface TextModule {
   _type: "textModule";
   _key: string;
-  text?: PortableTextBlock[];
+  text?: TextBlock[];
   columns?: number;
   alignment?: "justify" | "center";
 }
@@ -150,6 +182,8 @@ export interface DataBoxItem {
 export interface FeaturedProjectModule {
   _type: "featuredProject";
   _key: string;
+  label?: string;
+  showDesignedBy?: boolean;
   project?: Project;
   text?: PortableTextBlock[];
   media?: MediaItem[];
@@ -164,11 +198,24 @@ export interface Project {
   year?: number;
   client?: string;
   location?: string;
+  designedBy?: string;
+}
+
+export interface FileAsset {
+  _id: string;
+  url: string;
+  originalFilename?: string;
+  mimeType?: string;
+  size?: number;
 }
 
 export interface MediaItem {
   _type: "image" | "file";
   _key?: string;
-  asset?: ImageAsset;
+  asset?: ImageAsset | FileAsset;
   alt?: string;
+  poster?: {
+    asset: ImageAsset;
+    alt?: string;
+  };
 }

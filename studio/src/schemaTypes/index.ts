@@ -1,5 +1,6 @@
 import blockContent from './objects/blockContent'
 import mediaArray from './objects/mediaArray'
+import textBlock from './objects/textBlock'
 import textLinks from './objects/textLinks'
 import project from './documents/project'
 import homepage from './singletons/homepage'
@@ -30,5 +31,6 @@ export const schemaTypes = [
   // Objects
   blockContent,
   mediaArray,
+  textBlock,
   textLinks,
 ]
