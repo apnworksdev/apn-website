@@ -8,45 +8,108 @@ interface Props {
 }
 
 const { module } = Astro.props;
+
+const STATUS_LABELS: Record<string, string> = {
+  live: "Live",
+  "in-progress": "In Progress",
+  "modified-by-client": "Modified by Client",
+};
+
+function formatStatus(value: string): string {
+  return STATUS_LABELS[value] ?? value.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+type Project = TableOfWorksModule["projects"] extends (infer P)[] | undefined ? P : never;
+
+function normalizeToBaseLetter(char: string): string {
+  const decomposed = char.normalize("NFD");
+  const base = decomposed.replace(/\p{Mark}/gu, "")[0]?.toUpperCase() ?? "";
+  return /[A-Z]/.test(base) ? base : "";
+}
+
+function getGroupKey(title: string | undefined): string {
+  if (!title || !title.trim()) return "#";
+  const first = title.trim()[0];
+  const base = normalizeToBaseLetter(first);
+  return base || "#";
+}
+
+function groupProjectsByLetter(projects: Project[]): Map<string, Project[]> {
+  const sorted = [...projects].sort((a, b) =>
+    (a.title ?? "").localeCompare(b.title ?? "", undefined, { sensitivity: "base" })
+  );
+  const groups = new Map<string, Project[]>();
+  for (const project of sorted) {
+    const key = getGroupKey(project.title);
+    const list = groups.get(key) ?? [];
+    list.push(project);
+    groups.set(key, list);
+  }
+  return groups;
+}
+
+const projectGroups =
+  module.projects && module.projects.length > 0
+    ? groupProjectsByLetter(module.projects)
+    : null;
 ---
 
-<!-- <section class="table-of-works">
-  {module.projects && module.projects.length > 0 && (
-    <div class="table-of-works__grid">
-      {module.projects.map((project) => (
-        <a
-          href={project.slug?.current ? `/post/${project.slug.current}` : "#"}
-          class="table-of-works__item"
-        >
-          {project.thumbnail && 
-           project.thumbnail[0] && 
-           project.thumbnail[0]._type === "image" &&
-           project.thumbnail[0].asset && 
-           !("url" in project.thumbnail[0].asset) && (
-            <div class="table-of-works__thumbnail">
-              <img
-                src={urlFor(project.thumbnail[0].asset as ImageAsset).width(600).url()}
-                alt={project.thumbnail[0].alt || project.title || ""}
-              />
+<section class="table-of-works">
+  <div class="table-of-works__header">
+    <div class="table-of-works__header-item table-of-works__sort-alpha">
+      <button class="table-of-works__sort-alpha-button">
+        abc
+      </button>
+    </div>
+
+    <h2 class="table-of-works__title small-caps font-m"><strong>T</strong>able of <strong>W</strong>orks</h2>
+
+    <div class="table-of-works__header-item table-of-works__sort-year">
+      <button class="table-of-works__sort-year-button">
+        123
+      </button> 
+    </div>
+  </div>
+
+  {projectGroups && (
+    <div class="table-of-works__groups font-m">
+      {Array.from(projectGroups.keys())
+        .sort((a, b) => (a === "#" ? 1 : b === "#" ? -1 : a.localeCompare(b)))
+        .map((letter) => (
+          <div class="table-of-works__group" data-letter={letter}>
+            <h3 class="table-of-works__letter">{letter}.</h3>
+            <div class="table-of-works__grid">
+              {projectGroups.get(letter)!.map((project) => (
+                <a
+                  href={project.slug?.current ? `/post/${project.slug.current}` : "#"}
+                  class="table-of-works__item"
+                >
+                  <div class="table-of-works__project-title-status">
+                    {project.title && (
+                      <h3 class="table-of-works__project-title">{project.title}</h3>
+                    )}
+                    {project.status && (
+                      <p class="table-of-works__project-status">{formatStatus(project.status)}</p>
+                    )}
+                  </div>
+
+                  {project.thumbnail &&
+                    project.thumbnail[0] &&
+                    project.thumbnail[0]._type === "image" &&
+                    project.thumbnail[0].asset &&
+                    !("url" in project.thumbnail[0].asset) && (
+                      <div class="table-of-works__thumbnail">
+                        <img
+                          src={urlFor(project.thumbnail[0].asset as ImageAsset).width(600).url()}
+                          alt={project.thumbnail[0].alt || project.title || ""}
+                        />
+                      </div>
+                    )}
+                </a>
+              ))}
             </div>
-          )}
-          <div class="table-of-works__content">
-            {project.title && (
-              <h3 class="table-of-works__title">{project.title}</h3>
-            )}
-            {project.description && (
-              <p class="table-of-works__description">{project.description}</p>
-            )}
-            {(project.year || project.client || project.location) && (
-              <div class="table-of-works__meta">
-                {project.year && <span>{project.year}</span>}
-                {project.client && <span>{project.client}</span>}
-                {project.location && <span>{project.location}</span>}
-              </div>
-            )}
           </div>
-        </a>
-      ))}
+        ))}
     </div>
   )}
-</section> -->
+</section>

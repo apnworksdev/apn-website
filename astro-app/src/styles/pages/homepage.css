@@ -1,7 +1,3 @@
-.homepage__container {
-  /* padding: var(--separator-large) 0; */
-}
-
 /* ------------------------------------------------------------ */
 
 /*                             HERO                             */
@@ -169,7 +165,7 @@
 
 /* ------------------------------------------------------------ */
 
-/*                         FEATURED PROJECT                         */
+/*                       FEATURED PROJECT                       */
 
 /* ------------------------------------------------------------ */
 
@@ -216,6 +212,81 @@
 
 /* ------------------------------------------------------------ */
 
+/*                       TABLE OF WORKS                         */
+
+/* ------------------------------------------------------------ */
+
+.table-of-works {
+  width: calc(var(--column) * 16 + var(--gap) * 15);
+  margin: var(--separator-xlarge) auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--separator-large);
+}
+
+.table-of-works__header {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.table-of-works__title {
+  width: fit-content;
+  margin: 0 auto;
+  border-top: .5px solid var(--black);
+  border-bottom: .5px solid var(--black);
+  padding: 5px 3px 4px;
+}
+
+.table-of-works__status {
+  text-transform: capitalize;
+}
+
+.table-of-works__sort-year {
+  width: fit-content;
+  margin: 0 0 0 auto;
+}
+
+.table-of-works__project-title-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.table-of-works__letter,
+.table-of-works__project-title-status {
+  padding: 2px 0;
+}
+
+.table-of-works__project-title-status::after {
+  content: ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .";
+  display: block;
+  flex: 1;
+  order: 2;
+  text-overflow: "";
+  overflow: hidden;
+  direction: rtl;
+  height: 15px;
+}
+
+.table-of-works__project-title {
+  order: 1;
+}
+
+.table-of-works__project-status {
+  order: 3;
+}
+
+.table-of-works__groups {
+  column-count: 2;
+  column-gap: var(--gap);
+}
+
+.table-of-works__letter {
+  text-align: center;
+}
+
+/* ------------------------------------------------------------ */
+
 /*                             CREDITS                          */
 
 /* ------------------------------------------------------------ */
@@ -223,4 +294,5 @@
 .homepage__credits {
   white-space: pre-line;
   text-align: center;
+  margin-bottom: var(--separator-large);
 }

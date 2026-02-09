@@ -8,7 +8,7 @@ export default defineType({
     {
       name: 'main',
       title: 'Main',
-      default: false,
+      default: true,
     },
     {
       name: 'data',
@@ -18,7 +18,7 @@ export default defineType({
     {
       name: 'content',
       title: 'Content',
-      default: true,
+      default: false,
     },
   ],
   fields: [
@@ -38,6 +38,20 @@ export default defineType({
         maxLength: 96,
       },
       group: 'main',
+    }),
+    defineField({
+      name: 'status',
+      title: 'Status',
+      type: 'string',
+      group: 'main',
+      options: {
+        list: [
+          {title: 'Live', value: 'live'},
+          {title: 'In Progress', value: 'in-progress'},
+          {title: 'Modified by Client', value: 'modified-by-client'},
+        ],
+      },
+      initialValue: 'live',
     }),
     defineField({
       name: 'thumbnail',

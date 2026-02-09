@@ -41,7 +41,8 @@ export async function getHomepage(): Promise<Homepage | null> {
             description,
             year,
             client,
-            location
+            location,
+            status
           }
         },
         _type == "textModule" => {
@@ -198,6 +199,7 @@ export interface Project {
   year?: number;
   client?: string;
   location?: string;
+  status?: string;
   designedBy?: string;
 }
 
