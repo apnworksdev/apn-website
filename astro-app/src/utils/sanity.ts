@@ -18,6 +18,45 @@ export async function getPost(slug: string): Promise<Post> {
   );
 }
 
+export async function getFeaturedCarousel(): Promise<FeaturedCarousel | null> {
+  return await sanityClient.fetch(
+    groq`*[_type == "featuredCarousel"][0]{
+      _id,
+      modules[]{
+        _key,
+        project->{
+          _id,
+          title,
+          slug
+        },
+        label,
+        media[]{
+          _type,
+          _key,
+          _type == "image" => {
+            asset->,
+            alt
+          },
+          _type == "file" => {
+            asset->{
+              _id,
+              url,
+              originalFilename,
+              mimeType,
+              size
+            },
+            poster{
+              asset->,
+              alt
+            }
+          }
+        },
+        rotation
+      }
+    }`
+  );
+}
+
 export async function getHomepage(): Promise<Homepage | null> {
   return await sanityClient.fetch(
     groq`*[_type == "homepage"][0]{
@@ -220,4 +259,17 @@ export interface MediaItem {
     asset: ImageAsset;
     alt?: string;
   };
+}
+
+export interface FeaturedCarousel {
+  _id: string;
+  modules?: FeaturedCarouselModule[];
+}
+
+export interface FeaturedCarouselModule {
+  _key: string;
+  project?: Pick<Project, "_id" | "title" | "slug">;
+  label?: PortableTextBlock[];
+  media?: MediaItem[];
+  rotation?: string;
 }

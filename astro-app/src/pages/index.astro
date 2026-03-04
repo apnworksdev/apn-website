@@ -1,11 +1,14 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { getHomepage } from "../utils/sanity";
+import { getHomepage, getFeaturedCarousel } from "../utils/sanity";
 import ModuleRenderer from "../components/ModuleRenderer.astro";
 import '../styles/pages/homepage.css';
 import PortableText from "../components/PortableText.astro";
+import { urlFor } from "../utils/image";
+import type { ImageAsset } from "@sanity/types";
 
 const homepage = await getHomepage();
+const featuredCarousel = await getFeaturedCarousel();
 ---
 
 <Layout title="Home">
@@ -21,5 +24,47 @@ const homepage = await getHomepage();
         <PortableText class="font-s" content={homepage.credits} />
       </div>
     ) : null }
+  </div>
+
+  <div class="featured-carousel__container">
+    {featuredCarousel?.modules && featuredCarousel.modules.length > 0 && (
+      featuredCarousel.modules.map((item) => {
+        const firstMedia = item.media?.[0];
+        const isImage = firstMedia?._type === "image" && firstMedia?.asset;
+        const isFile = firstMedia?._type === "file" && firstMedia?.asset && "url" in firstMedia.asset;
+        const href = item.project?.slug?.current ? `/post/${item.project.slug.current}` : undefined;
+        return (
+          <article data-rotation={item.rotation ?? "default"}>
+            {href ? (
+              <a href={href}>
+                {item.project?.title && <h3>{item.project.title}</h3>}
+              </a>
+            ) : item.project?.title ? (
+              <h3>{item.project.title}</h3>
+            ) : null}
+            {item.label && item.label.length > 0 && (
+              <PortableText content={item.label} />
+            )}
+            {isImage && (
+              <img
+                src={urlFor(firstMedia.asset as ImageAsset).width(1200).url()}
+                alt={firstMedia.alt ?? item.project?.title ?? ""}
+              />
+            )}
+            {isFile && firstMedia.asset && "url" in firstMedia.asset && (
+              <video
+                src={firstMedia.asset.url}
+                poster={
+                  firstMedia.poster?.asset && !("url" in firstMedia.poster.asset)
+                    ? urlFor(firstMedia.poster.asset as ImageAsset).width(1200).url()
+                    : undefined
+                }
+                controls
+              />
+            )}
+          </article>
+        );
+      })
+    )}
   </div>
 </Layout>

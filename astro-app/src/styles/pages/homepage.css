@@ -266,6 +266,7 @@
   overflow: hidden;
   direction: rtl;
   height: 15px;
+  margin-right: 2px;
 }
 
 .table-of-works__project-title {
