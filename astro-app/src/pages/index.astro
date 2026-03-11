@@ -3,7 +3,9 @@ import Layout from "../layouts/Layout.astro";
 import { getHomepage, getFeaturedCarousel } from "../utils/sanity";
 import ModuleRenderer from "../components/ModuleRenderer.astro";
 import '../styles/pages/homepage.css';
+import '../styles/pages/featuredCarousel.css';
 import PortableText from "../components/PortableText.astro";
+import FirstLetterStrong from "../components/FirstLetterStrong.astro";
 import { urlFor } from "../utils/image";
 import type { ImageAsset } from "@sanity/types";
 
@@ -26,45 +28,87 @@ const featuredCarousel = await getFeaturedCarousel();
     ) : null }
   </div>
 
-  <div class="featured-carousel__container">
+  <div class="featured-carousel__container" data-carousel data-count={featuredCarousel?.modules?.length ?? 0}>
     {featuredCarousel?.modules && featuredCarousel.modules.length > 0 && (
-      featuredCarousel.modules.map((item) => {
+      featuredCarousel.modules.map((item, index) => {
         const firstMedia = item.media?.[0];
         const isImage = firstMedia?._type === "image" && firstMedia?.asset;
         const isFile = firstMedia?._type === "file" && firstMedia?.asset && "url" in firstMedia.asset;
         const href = item.project?.slug?.current ? `/post/${item.project.slug.current}` : undefined;
+        const assetForDimensions = isImage
+          ? (firstMedia?.asset as { metadata?: { dimensions?: { width?: number; height?: number } } } | undefined)
+          : firstMedia?._type === "file" && firstMedia?.poster?.asset
+            ? (firstMedia.poster.asset as { metadata?: { dimensions?: { width?: number; height?: number } } })
+            : undefined;
+        const dims = assetForDimensions?.metadata?.dimensions;
+        const w = dims?.width ?? 0;
+        const h = dims?.height ?? 0;
+        const mediaOrientation =
+          w > 0 && h > 0 ? (w > h ? "landscape" : h > w ? "portrait" : "square") : "square";
         return (
-          <article data-rotation={item.rotation ?? "default"}>
-            {href ? (
-              <a href={href}>
-                {item.project?.title && <h3>{item.project.title}</h3>}
-              </a>
-            ) : item.project?.title ? (
-              <h3>{item.project.title}</h3>
-            ) : null}
-            {item.label && item.label.length > 0 && (
-              <PortableText content={item.label} />
-            )}
-            {isImage && (
-              <img
-                src={urlFor(firstMedia.asset as ImageAsset).width(1200).url()}
-                alt={firstMedia.alt ?? item.project?.title ?? ""}
-              />
-            )}
-            {isFile && firstMedia.asset && "url" in firstMedia.asset && (
-              <video
-                src={firstMedia.asset.url}
-                poster={
-                  firstMedia.poster?.asset && !("url" in firstMedia.poster.asset)
-                    ? urlFor(firstMedia.poster.asset as ImageAsset).width(1200).url()
-                    : undefined
-                }
-                controls
-              />
-            )}
-          </article>
+          <div
+            class={`featured-carousel__item${index === 0 ? " active" : ""}`}
+            data-index={index}
+            data-rotation={item.rotation ?? "default"}
+            data-media-orientation={mediaOrientation}
+          >
+            <div class="featured-carousel__item__content">
+              {isImage && (
+                <img
+                  class="featured-carousel__media"
+                  src={urlFor(firstMedia.asset as ImageAsset).width(1200).url()}
+                  alt={firstMedia.alt ?? item.project?.title ?? ""}
+                />
+              )}
+              {isFile && firstMedia.asset && "url" in firstMedia.asset && (
+                <video
+                  src={firstMedia.asset.url}
+                  poster={
+                    firstMedia.poster?.asset && !("url" in firstMedia.poster.asset)
+                      ? urlFor(firstMedia.poster.asset as ImageAsset).width(1200).url()
+                      : undefined
+                  }
+                  controls
+                />
+              )}
+
+              <div class="featured-carousel__item__text font-m small-caps">
+                {href ? (
+                  <a href={href}>
+                    {item.label && item.label.length > 0 ? (
+                      <PortableText content={item.label} strongFirstLetters />
+                    ) : item.project?.title ? (
+                      <h3><FirstLetterStrong text={item.project.title} /></h3>
+                    ) : null}
+                  </a>
+                ) : item.label && item.label.length > 0 ? (
+                  <PortableText content={item.label} strongFirstLetters />
+                ) : item.project?.title ? (
+                  <h3><FirstLetterStrong text={item.project.title} /></h3>
+                ) : null}
+              </div>
+            </div>
+          </div>
         );
       })
     )}
   </div>
+
+  <script>
+    const container = document.querySelector(".featured-carousel__container[data-carousel]");
+    if (container) {
+      const count = parseInt(container.getAttribute("data-count") ?? "0", 10);
+      const items = container.querySelectorAll(".featured-carousel__item");
+      if (count > 0 && items.length > 0) {
+        container.addEventListener("click", (e) => {
+          if ((e.target as Element).closest("a")) return;
+          const current = container.querySelector(".featured-carousel__item.active");
+          const currentIndex = current ? parseInt((current as HTMLElement).dataset.index ?? "0", 10) : 0;
+          const nextIndex = (currentIndex + 1) % count;
+          current?.classList.remove("active");
+          items[nextIndex]?.classList.add("active");
+        });
+      }
+    }
+  </script>
 </Layout>

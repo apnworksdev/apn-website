@@ -1,12 +1,21 @@
 ---
 import type { PortableTextBlock } from "@portabletext/types";
 
+function getParts(text: string): ({ type: "space"; value: string } | { type: "word"; first: string; rest: string })[] {
+  return text.split(/(\s+)/).map((token: string) => {
+    if (/^\s+$/.test(token)) return { type: "space" as const, value: token };
+    if (!token.length) return null;
+    return { type: "word" as const, first: token[0], rest: token.slice(1) };
+  }).filter((x): x is { type: "space"; value: string } | { type: "word"; first: string; rest: string } => Boolean(x));
+}
+
 interface Props {
   content?: PortableTextBlock[];
   class?: string;
+  strongFirstLetters?: boolean;
 }
 
-const { content, class: className } = Astro.props;
+const { content, class: className, strongFirstLetters = false } = Astro.props;
 
 // Normalize content to always be an array
 const contentArray = Array.isArray(content) ? content : content ? [content] : [];
@@ -50,17 +59,25 @@ if (contentArray.length === 0) {
         }
         
         if (hasLink) {
-          return { type: "link", href: linkHref, text, isBold, isItalic };
+          return { type: "link", href: linkHref, text, isBold, isItalic, parts: strongFirstLetters ? getParts(text) : null };
         }
         
-        return { type: "text", text, isBold, isItalic };
+        return { type: "text", text, isBold, isItalic, parts: strongFirstLetters ? getParts(text) : null };
       }).filter(Boolean) || [];
     
       return (
         <Tag>
           {children.map((child: any) => {
             if (child.type === "link") {
-              const linkContent = (
+              const linkContent = child.parts ? (
+                <>
+                  {child.parts.map((p: { type: string; value?: string; first?: string; rest?: string }) =>
+                    p.type === "space" ? p.value : (
+                      <><strong>{p.first}</strong>{p.rest}</>
+                    )
+                  )}
+                </>
+              ) : (
                 <>
                   {child.isBold && child.isItalic ? (
                     <strong><em>{child.text}</em></strong>
@@ -88,7 +105,15 @@ if (contentArray.length === 0) {
               classes.push("regular-span");
             }
 
-            const formattedContent = (
+            const formattedContent = child.parts ? (
+              <>
+                {child.parts.map((p: { type: string; value?: string; first?: string; rest?: string }) =>
+                  p.type === "space" ? p.value : (
+                    <><strong>{p.first}</strong>{p.rest}</>
+                  )
+                )}
+              </>
+            ) : (
               <>
                 {child.isBold ? (
                   <strong>{child.text}</strong>

@@ -1,6 +1,7 @@
 :root {
   --gap: 12px;
   --column: 52px;
+  --dynamic-column: calc( (100vw - (var(--gap) * 25)) / 24 );
   --separator-small: 18px;
   --separator-medium: 36px;
   --separator-large: 72px;
@@ -18,4 +19,6 @@
   --font-m: 13px;
   --font-l: 20px;
   --font-xl: 30px;
+
+  --transition-effect: cubic-bezier(0.215, 0.610, 0.355, 1);
 }

@@ -1,0 +1,17 @@
+---
+interface Props {
+  text: string;
+}
+
+const { text } = Astro.props;
+const parts = text.split(/(\s+)/).map((token: string) => {
+  if (/^\s+$/.test(token)) return { type: "space" as const, value: token };
+  if (!token.length) return null;
+  return { type: "word" as const, first: token[0], rest: token.slice(1) };
+}).filter(Boolean) as ({ type: "space"; value: string } | { type: "word"; first: string; rest: string })[];
+---
+{parts.map((p) =>
+  p.type === "space" ? p.value : (
+    <><strong>{p.first}</strong>{p.rest}</>
+  )
+)}
