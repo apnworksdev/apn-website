@@ -68,6 +68,13 @@ export default defineType({
       group: 'main',
     }),
     defineField({
+      name: 'excerpt',
+      title: 'Excerpt',
+      type: 'text',
+      rows: 2,
+      group: 'main',
+    }),
+    defineField({
       name: 'year',
       title: 'Year',
       type: 'number',

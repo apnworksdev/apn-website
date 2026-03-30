@@ -18,6 +18,43 @@ export async function getPost(slug: string): Promise<Post> {
   );
 }
 
+export async function getProjects(): Promise<Project[]> {
+  return await sanityClient.fetch(
+    groq`*[_type == "project" && defined(slug.current)] | order(title asc){
+      _id,
+      title,
+      slug,
+      thumbnail,
+      excerpt,
+      description,
+      year,
+      client,
+      location,
+      status,
+      designedBy
+    }`
+  );
+}
+
+export async function getProject(slug: string): Promise<Project | null> {
+  return await sanityClient.fetch(
+    groq`*[_type == "project" && slug.current == $slug][0]{
+      _id,
+      title,
+      slug,
+      thumbnail,
+      excerpt,
+      description,
+      year,
+      client,
+      location,
+      status,
+      designedBy
+    }`,
+    { slug }
+  );
+}
+
 export async function getFeaturedCarousel(): Promise<FeaturedCarousel | null> {
   return await sanityClient.fetch(
     groq`*[_type == "featuredCarousel"][0]{
@@ -77,6 +114,7 @@ export async function getHomepage(): Promise<Homepage | null> {
             title,
             slug,
             thumbnail,
+            excerpt,
             description,
             year,
             client,
@@ -170,6 +208,7 @@ export type HomepageModule =
 export interface HeroModule {
   _type: "hero";
   _key: string;
+  menuLink?: string;
   image?: ImageAsset & { alt?: string };
   text?: PortableTextBlock[];
   disclaimer?: PortableTextBlock[];
@@ -178,6 +217,7 @@ export interface HeroModule {
 export interface TableOfWorksModule {
   _type: "tableOfWorks";
   _key: string;
+  menuLink?: string;
   projects?: Project[];
 }
 
@@ -190,6 +230,7 @@ export interface TextBlock {
 export interface TextModule {
   _type: "textModule";
   _key: string;
+  menuLink?: string;
   text?: TextBlock[];
   columns?: number;
   alignment?: "justify" | "center";
@@ -198,6 +239,7 @@ export interface TextModule {
 export interface ContactModule {
   _type: "contactModule";
   _key: string;
+  menuLink?: string;
   contacts?: Contact[];
 }
 
@@ -210,6 +252,7 @@ export interface Contact {
 export interface DataBoxModule {
   _type: "dataBox";
   _key: string;
+  menuLink?: string;
   items?: DataBoxItem[];
 }
 
@@ -222,6 +265,7 @@ export interface DataBoxItem {
 export interface FeaturedProjectModule {
   _type: "featuredProject";
   _key: string;
+  menuLink?: string;
   label?: string;
   showDesignedBy?: boolean;
   project?: Project;
@@ -234,6 +278,7 @@ export interface Project {
   title?: string;
   slug?: Slug;
   thumbnail?: MediaItem[];
+  excerpt?: string;
   description?: string;
   year?: number;
   client?: string;

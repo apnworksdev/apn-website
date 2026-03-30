@@ -12,6 +12,11 @@ export default defineType({
   icon: InboxIcon,
   fields: [
     defineField({
+      name: 'menuLink',
+      title: 'Menu',
+      type: 'string',
+    }),
+    defineField({
       name: 'contacts',
       title: 'Contacts',
       type: 'array',

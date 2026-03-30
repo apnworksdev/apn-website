@@ -1,0 +1,131 @@
+nav {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 200;
+  width: calc((var(--column) * 3) + (var(--gap) * 3));
+  margin: var(--gap);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  transition: opacity 0.5s var(--transition-effect), transform 0.5s var(--transition-effect);
+}
+
+html.show-project-hover nav {
+  opacity: 0;
+  transform: translateX(3px);
+}
+
+nav menu {
+  /* display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between; */
+  text-align: justify;
+}
+
+nav button {
+  position: relative;
+}
+
+nav button:not(.nav__line-no)::before {
+  content: '';
+  display: block;
+  width: calc(100% - 14px);
+  height: 0.5px;
+  background-color: var(--black);
+  position: absolute;
+  bottom: 1px;
+  right: 0;
+  transform: scaleX(0%);
+  transform-origin: left;
+  transition: transform 0.3s var(--transition-effect);
+}
+
+nav button.active::before {
+  transform: scaleX(100%);
+}
+
+nav button.nav__line-full::before {
+  width: 100%;
+}
+
+nav button.nav__line-works::before {
+  width: 119px;
+}
+
+nav button.nav__line-services::before {
+  width: 103px;
+}
+
+.book__indications {
+  display: flex;
+  gap: calc(var(--gap) / 1.25);
+  padding: calc(var(--gap) / 2) 0 0 6px;
+  border-top: 0.5px solid var(--black);
+  align-items: center;
+}
+
+[data-visuals-toggle] {
+  cursor: pointer;
+}
+
+.book__container svg {
+  width: 24px;
+  height: auto;
+}
+
+html.show-visuals .book__container.book__container--text,
+html:not(.show-visuals) .book__container.book__container--visuals {
+  display: none;
+}
+
+html.show-visuals .book__container.book__container--visuals,
+html:not(.show-visuals) .book__container.book__container--text {
+  display: flex;
+}
+
+.book__container {
+  display: flex;
+  padding: 0 3px 1px;
+}
+
+.indications {
+  --font-xs: 8px;
+  text-align: justify;
+}
+
+
+
+
+
+
+.project-hover-preview {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 200;
+  width: calc((var(--column) * 3) + (var(--gap) * 3));
+  margin: var(--gap);
+  opacity: 0;
+  transform: translateX(3px);
+  transition: opacity 0.5s var(--transition-effect), transform 0.5s var(--transition-effect);
+}
+
+html.show-project-hover .project-hover-preview {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.project-hover-preview__inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.project-hover-preview__image {
+  width: 100%;
+}
+
+.project-hover-preview__text {
+  text-align: justify;
+}

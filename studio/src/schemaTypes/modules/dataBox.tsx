@@ -12,6 +12,11 @@ export default defineType({
   icon: SplitVerticalIcon,
   fields: [
     defineField({
+      name: 'menuLink',
+      title: 'Menu',
+      type: 'string',
+    }),
+    defineField({
       name: 'items',
       title: 'Items',
       type: 'array',

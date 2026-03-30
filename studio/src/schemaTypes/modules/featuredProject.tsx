@@ -12,6 +12,11 @@ export default defineType({
   icon: StarIcon,
   fields: [
     defineField({
+      name: 'menuLink',
+      title: 'Menu',
+      type: 'string',
+    }),
+    defineField({
       name: 'label',
       title: 'Label',
       type: 'string',

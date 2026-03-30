@@ -1,0 +1,41 @@
+---
+import type { InferGetStaticParamsType } from "astro";
+import Layout from "../../layouts/Layout.astro";
+import { getProject, getProjects } from "../../utils/sanity";
+import { urlFor } from "../../utils/image";
+import type { ImageAsset } from "@sanity/types";
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects
+    .map((p) => p.slug?.current)
+    .filter((s): s is string => Boolean(s))
+    .map((slug) => ({ params: { slug } }));
+}
+
+type Params = InferGetStaticParamsType<typeof getStaticPaths>;
+const { slug } = Astro.params as Params;
+
+const project = await getProject(slug);
+---
+
+<Layout title={project?.title ?? "Project"}>
+  <section class="project">
+    <div class="project__container">
+      {project?.thumbnail?.[0]?._type === "image" &&
+        project.thumbnail[0].asset &&
+        !("url" in project.thumbnail[0].asset) && (
+        <img
+          class="project__cover"
+          src={urlFor(project.thumbnail[0].asset as ImageAsset).width(1600).url()}
+          alt={project.thumbnail?.[0]?.alt ?? project?.title ?? ""}
+        />
+      )}
+      {project?.title && <h1 class="project__title">{project.title}</h1>}
+      {(project?.excerpt || project?.description) && (
+        <p class="project__excerpt">{project.excerpt ?? project.description}</p>
+      )}
+    </div>
+  </section>
+</Layout>
+

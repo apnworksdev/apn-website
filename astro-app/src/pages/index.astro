@@ -11,13 +11,49 @@ import type { ImageAsset } from "@sanity/types";
 
 const homepage = await getHomepage();
 const featuredCarousel = await getFeaturedCarousel();
+const homepageModules = homepage?.modules ?? [];
+const slugifyForId = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/['"]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const moduleSectionIds = homepageModules.map((module, index) => {
+  const fromMenuLink = module.menuLink ? slugifyForId(module.menuLink) : "";
+  return (
+    fromMenuLink ||
+    `module-${index + 1}-${module._key.replace(/[^a-zA-Z0-9_-]/g, "")}`
+  );
+});
+const navItems = homepageModules
+  .map((module, index) => {
+    const label = module.menuLink?.trim();
+    return label
+      ? {
+          id: moduleSectionIds[index],
+          label,
+        }
+      : null;
+  })  
+  .filter((item): item is { id: string; label: string } => Boolean(item));
+const orderedNavItems = navItems.map((item, index) => ({
+  ...item,
+  order: index + 1,
+}));
 ---
 
-<Layout title="Home">
+<Layout title="Home" navItems={orderedNavItems}>
   <div class="homepage__container">
-    {homepage?.modules && homepage.modules.length > 0 ? (
-      homepage.modules.map((module) => (
-        <ModuleRenderer module={module} />
+    {homepageModules.length > 0 ? (
+      homepageModules.map((module, index) => (
+        <section
+          id={moduleSectionIds[index]}
+          data-nav-section
+        >
+          <ModuleRenderer module={module} />
+        </section>
       ))
     ) : null }
 
@@ -34,7 +70,7 @@ const featuredCarousel = await getFeaturedCarousel();
         const firstMedia = item.media?.[0];
         const isImage = firstMedia?._type === "image" && firstMedia?.asset;
         const isFile = firstMedia?._type === "file" && firstMedia?.asset && "url" in firstMedia.asset;
-        const href = item.project?.slug?.current ? `/post/${item.project.slug.current}` : undefined;
+        const href = item.project?.slug?.current ? `/project/${item.project.slug.current}` : undefined;
         const assetForDimensions = isImage
           ? (firstMedia?.asset as { metadata?: { dimensions?: { width?: number; height?: number } } } | undefined)
           : firstMedia?._type === "file" && firstMedia?.poster?.asset
@@ -100,13 +136,41 @@ const featuredCarousel = await getFeaturedCarousel();
       const count = parseInt(container.getAttribute("data-count") ?? "0", 10);
       const items = container.querySelectorAll(".featured-carousel__item");
       if (count > 0 && items.length > 0) {
-        container.addEventListener("click", (e) => {
-          if ((e.target as Element).closest("a")) return;
+        const setActiveIndex = (nextIndex: number) => {
           const current = container.querySelector(".featured-carousel__item.active");
-          const currentIndex = current ? parseInt((current as HTMLElement).dataset.index ?? "0", 10) : 0;
-          const nextIndex = (currentIndex + 1) % count;
           current?.classList.remove("active");
           items[nextIndex]?.classList.add("active");
+        };
+
+        const getCurrentIndex = () => {
+          const current = container.querySelector(".featured-carousel__item.active");
+          return current ? parseInt((current as HTMLElement).dataset.index ?? "0", 10) : 0;
+        };
+
+        container.addEventListener("click", (e) => {
+          if ((e.target as Element).closest("a")) return;
+          const currentIndex = getCurrentIndex();
+          const nextIndex = (currentIndex + 1) % count;
+          setActiveIndex(nextIndex);
+        });
+
+        window.addEventListener("keydown", (e) => {
+          const target = e.target as HTMLElement | null;
+          const tag = target?.tagName?.toLowerCase();
+          if (tag === "input" || tag === "textarea" || tag === "select" || target?.isContentEditable) return;
+          if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+          if (e.key === "ArrowRight") {
+            e.preventDefault();
+            const currentIndex = getCurrentIndex();
+            const nextIndex = (currentIndex + 1) % count;
+            setActiveIndex(nextIndex);
+          } else if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            const currentIndex = getCurrentIndex();
+            const prevIndex = (currentIndex - 1 + count) % count;
+            setActiveIndex(prevIndex);
+          }
         });
       }
     }

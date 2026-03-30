@@ -36,7 +36,7 @@ function formatTitleWithStrongLetters(title: string) {
         {project.title && (
           <h2 class="module--featured-project__title font-m small-caps">
             {project.slug?.current ? (
-              <a href={`/post/${project.slug.current}`}>
+              <a href={`/project/${project.slug.current}`}>
                 <span set:html={formatTitleWithStrongLetters(project.title)} />
               </a>
             ) : (

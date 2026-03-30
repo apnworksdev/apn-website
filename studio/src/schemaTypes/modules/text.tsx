@@ -8,6 +8,11 @@ export default defineType({
   icon: TextIcon,
   fields: [
     defineField({
+      name: 'menuLink',
+      title: 'Menu',
+      type: 'string',
+    }),
+    defineField({
       name: 'text',
       title: 'Text',
       type: 'array',

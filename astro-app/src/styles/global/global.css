@@ -98,6 +98,10 @@ input:-webkit-autofill:active {
   text-transform: uppercase;
 }
 
+.sans {
+  font-family: Helvetica, Arial, sans-serif;
+}
+
 .small-caps {
   font-variant-caps: small-caps;
   letter-spacing: 0.12rem;
@@ -114,6 +118,11 @@ input:-webkit-autofill:active {
 
 .small-caps-span-italic + .small-caps-span-bold {
   margin-left: 4px;
+}
+
+.font-xs {
+  font-size: var(--font-xs);
+  line-height: 1.2;
 }
 
 .font-s {
@@ -134,15 +143,6 @@ input:-webkit-autofill:active {
 .font-xl {
   font-size: var(--font-xl);
   line-height: .9;
-}
-
-.sans {
-  font-family: 'Gerstner';
-  font-size: 10px;
-  line-height: 10px;
-  letter-spacing: 0.05em;
-  padding: 3px 0 7px;
-  display: inline-block;
 }
 
 @media only screen and (min-width: 820px) {

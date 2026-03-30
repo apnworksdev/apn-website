@@ -4,11 +4,16 @@
   left: 0;
   width: 100vw;
   height: 100dvh;
-  z-index: 200;
+  z-index: 150;
   opacity: .05;
   pointer-events: none;
   cursor: pointer;
   transition: opacity 0.5s var(--transition-effect);
+}
+
+html.show-visuals .featured-carousel__container {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .featured-carousel__item {

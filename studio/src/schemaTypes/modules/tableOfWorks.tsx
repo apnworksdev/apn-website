@@ -12,6 +12,11 @@ export default defineType({
   icon: OlistIcon,
   fields: [
     defineField({
+      name: 'menuLink',
+      title: 'Menu',
+      type: 'string',
+    }),
+    defineField({
       name: 'projects',
       title: 'Projects',
       type: 'array',

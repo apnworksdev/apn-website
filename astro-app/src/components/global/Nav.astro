@@ -1,19 +1,207 @@
 ---
 import Book from './Book.astro';
+import BookVisuals from './BookVisuals.astro';
+
+interface Props {
+  items?: { id: string; label: string; order: number }[];
+}
+
+const { items = [] } = Astro.props;
 ---
 
 <nav>
   <menu>
-    <li><span>01</span><span>About Apn</span><li>
-    <li><span>02</span><span>Contact</span><li>
-    <li><span>03</span><span>Latest Project</span><li>
-    <li><span>04</span><span>Table of Works</span><li>
-    <li><span>05</span><span>Services & Team</span><li>
-    <li><span>06</span><span>Clients & Collaborators</span><li>
-    <li><span>07</span><span>Visuals</span><li>
+    <button type="button" data-nav-button data-target="about-apn">
+      <span class="font-xs sans">01</span>
+      <span class="font-s">About APN</span>
+    </button>
+
+    <button type="button" data-nav-button data-target="contact">
+      <span class="font-xs sans">02</span>
+      <span class="font-s">Contact</span>
+    </button>
+
+    <button type="button" data-nav-button data-target="latest-project">
+      <span class="font-xs sans">03</span>
+      <span class="font-s">Latest</span>
+    </button>
+    <button type="button" data-nav-button data-target="latest-project" class="nav__line-full">
+      <span class="font-s">Project</span>
+    </button>
+
+    <button type="button" data-nav-button data-target="table-of-works" class="nav__line-no">
+      <span class="font-xs sans">04</span>
+      <span class="font-s">Table</span>
+    </button>
+    <button type="button" data-nav-button data-target="table-of-works" class="nav__line-no">
+      <span class="font-s">of</span>
+    </button>
+    <button type="button" data-nav-button data-target="table-of-works" class="nav__line-works">
+      <span class="font-s">Works</span>
+    </button>
+
+    <button type="button" data-nav-button data-target="services-team" class="nav__line-no">
+      <span class="font-xs sans">05</span>
+      <span class="font-s">Services</span>
+    </button>
+    <button type="button" data-nav-button data-target="services-team" class="nav__line-no">
+      <span class="font-s">&</span>
+    </button>
+    <button type="button" data-nav-button data-target="services-team" class="nav__line-services">
+      <span class="font-s">Team</span>
+    </button>
+
+    <button type="button" data-nav-button data-target="clients-collaborators">
+      <span class="font-xs sans">06</span>
+      <span class="font-s">Clients &</span>
+    </button>
+    <button type="button" data-nav-button data-target="clients-collaborators" class="nav__line-full">
+      <span class="font-s">Collaborators</span>
+    </button>
+
+    <button type="button" data-nav-button data-target="visuals">
+      <span class="font-xs sans">07</span>
+      <span class="font-s">Visuals</span>
+    </button>
   </menu>
   <div class="book__indications">
-    <div><Book/></div>
-    <div class="indications"></div>
+    <div data-visuals-toggle><Book/><BookVisuals/></div>
+    <div class="indications font-xs sans">Press 'F' on your keyboard to view the featured work. Press 'T' to return to the text page.</div>
   </div>
 </nav>
+
+<script>
+  const navItems = document.querySelectorAll<HTMLElement>("[data-nav-item]");
+  const navButtons = document.querySelectorAll<HTMLButtonElement>("[data-nav-button]");
+
+  const setActiveTarget = (id: string) => {
+    // If you're using list items, keep that behavior
+    if (navItems.length > 0) {
+      navItems.forEach((item) => item.classList.remove("active"));
+      const activeItem = Array.from(navItems).find((item) => item.dataset.target === id);
+      activeItem?.classList.add("active");
+    }
+
+    // Always support button-only navs
+    navButtons.forEach((btn) => btn.classList.remove("active"));
+    navButtons.forEach((btn) => {
+      if (btn.dataset.target === id) btn.classList.add("active");
+    });
+  };
+
+  // Click-to-scroll should work even without `[data-nav-item]` elements
+  navButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const targetId = button.dataset.target;
+      if (!targetId) return;
+
+      if (targetId === "visuals") {
+        const root = document.documentElement;
+        const wasShowing = root.classList.contains("show-visuals");
+        root.classList.toggle("show-visuals");
+        if (wasShowing) scheduleUpdate();
+        else setActiveTarget(targetId);
+        return;
+      }
+
+      document.documentElement.classList.remove("show-visuals");
+      const target = document.getElementById(targetId);
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setActiveTarget(targetId);
+    });
+  });
+
+  const toggleVisuals = () => {
+    const root = document.documentElement;
+    const wasShowing = root.classList.contains("show-visuals");
+    root.classList.toggle("show-visuals");
+    if (wasShowing) scheduleUpdate();
+    else setActiveTarget("visuals");
+  };
+
+  const hideVisuals = () => {
+    const root = document.documentElement;
+    if (!root.classList.contains("show-visuals")) return;
+    root.classList.remove("show-visuals");
+    scheduleUpdate();
+  };
+
+  const visualsToggles = document.querySelectorAll<HTMLElement>("[data-visuals-toggle]");
+  visualsToggles.forEach((el) => {
+    el.addEventListener("click", () => {
+      toggleVisuals();
+    });
+  });
+
+  window.addEventListener("keydown", (e) => {
+    const target = e.target as HTMLElement | null;
+    const tag = target?.tagName?.toLowerCase();
+    if (tag === "input" || tag === "textarea" || tag === "select" || target?.isContentEditable) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+    const key = e.key.toLowerCase();
+    if (key === "f") {
+      e.preventDefault();
+      toggleVisuals();
+    } else if (key === "t") {
+      e.preventDefault();
+      hideVisuals();
+    }
+  });
+
+  // Active-on-scroll: works for both `[data-nav-item]` and button-only navs
+  const targetIds = Array.from(
+    new Set(
+      Array.from(navButtons)
+        .map((b) => b.dataset.target)
+        .filter((t): t is string => Boolean(t))
+    )
+  );
+  const sections = Array.from(document.querySelectorAll<HTMLElement>("[data-nav-section]")).filter(
+    (section) => Boolean(section.id) && targetIds.includes(section.id)
+  );
+
+  // If scroll tracking isn't available, this is a no-op.
+  let scheduleUpdate = () => {};
+
+  if (sections.length > 0) {
+    let rafId = 0;
+    const updateActiveFromScroll = () => {
+      rafId = 0;
+      if (document.documentElement.classList.contains("show-visuals")) {
+        setActiveTarget("visuals");
+        return;
+      }
+      const bottomThresholdPx = 2;
+      const atBottom =
+        window.scrollY + window.innerHeight >=
+        document.documentElement.scrollHeight - bottomThresholdPx;
+
+      if (atBottom) {
+        const lastId = sections[sections.length - 1]?.id ?? null;
+        if (lastId) setActiveTarget(lastId);
+        return;
+      }
+
+      const centerY = window.scrollY + window.innerHeight / 2;
+
+      let activeId: string | null = null;
+      sections.forEach((section) => {
+        const top = section.offsetTop;
+        if (top <= centerY) activeId = section.id;
+      });
+
+      if (!activeId) activeId = sections[0]?.id ?? null;
+      if (activeId) setActiveTarget(activeId);
+    };
+
+    scheduleUpdate = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(updateActiveFromScroll);
+    };
+
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+    scheduleUpdate();
+  }
+</script>

@@ -81,8 +81,20 @@ const projectGroups =
             <div class="table-of-works__grid">
               {projectGroups.get(letter)!.map((project) => (
                 <a
-                  href={project.slug?.current ? `/post/${project.slug.current}` : "#"}
+                  href={project.slug?.current ? `/project/${project.slug.current}` : "#"}
                   class="table-of-works__item"
+                  data-project-preview
+                  data-preview-title={project.title ?? ""}
+                  data-preview-excerpt={project.excerpt ?? project.description ?? ""}
+                  data-preview-image={
+                    project.thumbnail &&
+                    project.thumbnail[0] &&
+                    project.thumbnail[0]._type === "image" &&
+                    project.thumbnail[0].asset &&
+                    !("url" in project.thumbnail[0].asset)
+                      ? urlFor(project.thumbnail[0].asset as ImageAsset).width(1200).url()
+                      : ""
+                  }
                 >
                   <div class="table-of-works__project-title-status">
                     {project.title && (
@@ -92,19 +104,6 @@ const projectGroups =
                       <p class="table-of-works__project-status">{formatStatus(project.status)}</p>
                     )}
                   </div>
-
-                  {project.thumbnail &&
-                    project.thumbnail[0] &&
-                    project.thumbnail[0]._type === "image" &&
-                    project.thumbnail[0].asset &&
-                    !("url" in project.thumbnail[0].asset) && (
-                      <div class="table-of-works__thumbnail">
-                        <img
-                          src={urlFor(project.thumbnail[0].asset as ImageAsset).width(600).url()}
-                          alt={project.thumbnail[0].alt || project.title || ""}
-                        />
-                      </div>
-                    )}
                 </a>
               ))}
             </div>
