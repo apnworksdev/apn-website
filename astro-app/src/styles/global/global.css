@@ -122,17 +122,17 @@ input:-webkit-autofill:active {
 
 .font-xs {
   font-size: var(--font-xs);
-  line-height: 1.2;
+  line-height: 1.4;
 }
 
 .font-s {
   font-size: var(--font-s);
-  line-height: 1.2;
+  line-height: 1.3;
 }
 
 .font-m {
   font-size: var(--font-m);
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .font-l {

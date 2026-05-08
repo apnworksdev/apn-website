@@ -23,6 +23,7 @@ export async function getProjects(): Promise<Project[]> {
     groq`*[_type == "project" && defined(slug.current)] | order(title asc){
       _id,
       title,
+      projectType,
       slug,
       thumbnail,
       excerpt,
@@ -30,8 +31,65 @@ export async function getProjects(): Promise<Project[]> {
       year,
       client,
       location,
+      typeface,
+      animationBy,
+      techStack,
+      services,
+      customCredits[]{
+        credit,
+        text
+      },
+      links,
       status,
-      designedBy
+      designedBy,
+      regularMedia[]{
+        _type,
+        _key,
+        _type == "image" => {
+          alt,
+          asset,
+          crop,
+          hotspot,
+          "dimensions": asset->metadata.dimensions
+        },
+        _type == "file" => {
+          "asset": asset->{
+            _id,
+            url,
+            originalFilename,
+            mimeType,
+            size
+          },
+          poster{
+            "asset": asset->,
+            alt
+          }
+        }
+      },
+      extendedMedia[]{
+        _type,
+        _key,
+        _type == "image" => {
+          alt,
+          asset,
+          crop,
+          hotspot,
+          "dimensions": asset->metadata.dimensions
+        },
+        _type == "file" => {
+          "asset": asset->{
+            _id,
+            url,
+            originalFilename,
+            mimeType,
+            size
+          },
+          poster{
+            "asset": asset->,
+            alt
+          }
+        }
+      }
     }`
   );
 }
@@ -41,6 +99,7 @@ export async function getProject(slug: string): Promise<Project | null> {
     groq`*[_type == "project" && slug.current == $slug][0]{
       _id,
       title,
+      projectType,
       slug,
       thumbnail,
       excerpt,
@@ -48,8 +107,65 @@ export async function getProject(slug: string): Promise<Project | null> {
       year,
       client,
       location,
+      typeface,
+      animationBy,
+      techStack,
+      services,
+      customCredits[]{
+        credit,
+        text
+      },
+      links,
       status,
-      designedBy
+      designedBy,
+      regularMedia[]{
+        _type,
+        _key,
+        _type == "image" => {
+          alt,
+          asset,
+          crop,
+          hotspot,
+          "dimensions": asset->metadata.dimensions
+        },
+        _type == "file" => {
+          "asset": asset->{
+            _id,
+            url,
+            originalFilename,
+            mimeType,
+            size
+          },
+          poster{
+            "asset": asset->,
+            alt
+          }
+        }
+      },
+      extendedMedia[]{
+        _type,
+        _key,
+        _type == "image" => {
+          alt,
+          asset,
+          crop,
+          hotspot,
+          "dimensions": asset->metadata.dimensions
+        },
+        _type == "file" => {
+          "asset": asset->{
+            _id,
+            url,
+            originalFilename,
+            mimeType,
+            size
+          },
+          poster{
+            "asset": asset->,
+            alt
+          }
+        }
+      }
     }`,
     { slug }
   );
@@ -273,9 +389,16 @@ export interface FeaturedProjectModule {
   media?: MediaItem[];
 }
 
+export interface CustomCredit {
+  credit?: string;
+  // `text` is `textLinks` in Sanity (Portable Text array).
+  text?: PortableTextBlock[];
+}
+
 export interface Project {
   _id: string;
   title?: string;
+  projectType?: "regular" | "extended";
   slug?: Slug;
   thumbnail?: MediaItem[];
   excerpt?: string;
@@ -283,8 +406,16 @@ export interface Project {
   year?: number;
   client?: string;
   location?: string;
+  typeface?: string;
+  animationBy?: string;
   status?: string;
   designedBy?: string;
+  services?: string;
+  techStack?: string;
+  customCredits?: CustomCredit[];
+  links?: PortableTextBlock[];
+  regularMedia?: MediaItem[];
+  extendedMedia?: MediaItem[];
 }
 
 export interface FileAsset {

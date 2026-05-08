@@ -139,6 +139,10 @@ html.show-visuals .homepage__container {
   display: inline;
 }
 
+.module--data-box__title-container {
+  margin-bottom: 3px;
+}
+
 .module--data-box__grid {
   display: flex;
 }
@@ -250,6 +254,10 @@ html.show-visuals .homepage__container {
   padding: 5px 3px 4px;
 }
 
+.table-of-works__header-item {
+  padding: 5px 0;
+}
+
 .table-of-works__status {
   text-transform: capitalize;
 }
@@ -294,6 +302,11 @@ html.show-visuals .homepage__container {
   column-count: 2;
   column-gap: var(--gap);
 }
+
+.table-of-works__group:not(:first-child) {
+  margin-top: 20.25px;
+}
+
 
 .table-of-works__letter {
   text-align: center;

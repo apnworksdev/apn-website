@@ -1,9 +1,13 @@
 ---
 import type { InferGetStaticParamsType } from "astro";
 import Layout from "../../layouts/Layout.astro";
+import '../../styles/pages/project.css';
 import { getProject, getProjects } from "../../utils/sanity";
 import { urlFor } from "../../utils/image";
 import type { ImageAsset } from "@sanity/types";
+import type { FileAsset } from "../../utils/sanity";
+import SanityImage from "../../components/SanityImage.astro";
+import PortableText from "../../components/PortableText.astro";
 
 export async function getStaticPaths() {
   const projects = await getProjects();
@@ -31,11 +35,218 @@ const project = await getProject(slug);
           alt={project.thumbnail?.[0]?.alt ?? project?.title ?? ""}
         />
       )}
-      {project?.title && <h1 class="project__title">{project.title}</h1>}
-      {(project?.excerpt || project?.description) && (
+      {project?.title && <h1 class="project__title font-s small-caps">{project.title}</h1>}
+
+      <!-- {(project?.excerpt || project?.description) && (
         <p class="project__excerpt">{project.excerpt ?? project.description}</p>
+      )} -->
+
+      {project?.projectType !== "extended" && project?.regularMedia && project.regularMedia.length > 0 && (
+        <div class="project__media">
+          {project.regularMedia.map((mediaItem) => {
+            if (mediaItem._type === "image" && "asset" in mediaItem && mediaItem.asset) {
+              const dims = (mediaItem as { dimensions?: { width?: number; height?: number } }).dimensions;
+              const w = dims?.width ?? 0;
+              const h = dims?.height ?? 0;
+              const ratio = w > 0 && h > 0 ? w / h : 0;
+              const aspect = ratio > 0 ? String(ratio) : undefined;
+              const orientation =
+                w > 0 && h > 0 ? (w > h ? "landscape" : h > w ? "portrait" : "square") : undefined;
+              const xLandscape = orientation === "landscape" && ratio > 1.45;
+              const xPortrait = orientation === "portrait" && ratio > 0 && ratio < 0.6;
+              return (
+                <div
+                  class={`project__image${orientation ? ` ${orientation}` : ""}${xLandscape ? " x-landscape" : ""}${xPortrait ? " x-portrait" : ""}`}
+                  data-aspect={aspect}
+                >
+                  <SanityImage
+                    image={mediaItem as any}
+                    alt={mediaItem.alt || project.title || ""}
+                    width={1600}
+                    sizes="(max-width: 768px) 100vw, 1600px"
+                    loading="lazy"
+                    class="project__image-element media-element"
+                  />
+                </div>
+              );
+            }
+            if (mediaItem._type === "file" && mediaItem.asset && "url" in mediaItem.asset) {
+              const fileAsset = mediaItem.asset as FileAsset;
+              let posterUrl: string | undefined;
+              if (mediaItem.poster && mediaItem.poster.asset) {
+                posterUrl = urlFor(mediaItem.poster.asset as ImageAsset).width(1600).url();
+              }
+              return (
+                <div class="project__video">
+                  <video
+                    autoplay
+                    loop
+                    preload="metadata"
+                    muted
+                    playsinline
+                    class="project__video-element media-element"
+                    poster={posterUrl}
+                  >
+                    <source src={fileAsset.url} type={fileAsset.mimeType || "video/mp4"} />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
       )}
+
+      <div class="project__credits-container">
+        <div class="project__credits-separator">
+          <span class="project__credits-separator-text font-l">* * *</span>
+        </div>
+
+        <dl class="project__credits font-s">
+          {(project?.year ||
+            project?.client ||
+            project?.designedBy ||
+            project?.typeface ||
+            project?.animationBy ||
+            project?.location ||
+            project?.techStack ||
+            project?.services) && (
+              <>
+                {project?.year && (
+                  <div class="project__credit">
+                    <dt class="small-caps">Year</dt>
+                    <dd>{project.year}</dd>
+                  </div>
+                )}
+                {project?.client && (
+                  <div class="project__credit">
+                    <dt class="small-caps">Client</dt>
+                    <dd>{project.client}</dd>
+                  </div>
+                )}
+                {project?.designedBy && (
+                  <div class="project__credit">
+                    <dt class="small-caps">Designed By</dt>
+                    <dd>{project.designedBy}</dd>
+                  </div>
+                )}
+                {project?.typeface && (
+                  <div class="project__credit">
+                    <dt class="small-caps">Typeface</dt>
+                    <dd>{project.typeface}</dd>
+                  </div>
+                )}
+                {project?.animationBy && (
+                  <div class="project__credit">
+                    <dt class="small-caps">Animation By</dt>
+                    <dd>{project.animationBy}</dd>
+                  </div>
+                )}
+                {project?.location && (
+                  <div class="project__credit">
+                    <dt class="small-caps">Located In</dt>
+                    <dd>{project.location}</dd>
+                  </div>
+                )}
+                {project?.techStack && (
+                  <div class="project__credit">
+                    <dt class="small-caps">Tech Stack</dt>
+                    <dd>{project.techStack}</dd>
+                  </div>
+                )}
+                {project?.services && (
+                  <div class="project__credit">
+                    <dt class="small-caps">Services</dt>
+                    <dd>{project.services}</dd>
+                  </div>
+                )}
+                {project?.customCredits &&
+                  project.customCredits.length > 0 &&
+                  project.customCredits.map((credit) => (
+                    <div class="project__credit">
+                      {credit.credit && <dt class="small-caps">{credit.credit}</dt>}
+                      {credit.text && (
+                        <dd>
+                          <PortableText content={credit.text} />
+                        </dd>
+                      )}
+                    </div>
+                  ))}
+              </>
+          )}
+        </dl>
+
+        {project?.links && project.links.length > 0 && (
+          <div class="project__links sans font-s">
+            <PortableText content={project.links} />
+          </div>
+        )}
+
+      </div>
     </div>
   </section>
 </Layout>
+
+<script>
+  const mediaEls = Array.from(document.querySelectorAll<HTMLElement>(".project__media .project__image, .project__media .project__video"));
+  if (mediaEls.length > 0) {
+    let rafId = 0;
+    const minOpacity = 0.08;
+
+    const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
+
+    const update = () => {
+      rafId = 0;
+      if (window.scrollY <= 0) {
+        for (const el of mediaEls) {
+          el.style.opacity = "1";
+          el.classList.remove("hide");
+        }
+        return;
+      }
+      const vh = window.innerHeight || 0;
+      const startY = (vh * 2) / 3;
+
+      // Reset all opacities first; then apply progressive fade to "previous" items.
+      for (const el of mediaEls) {
+        el.style.opacity = "1";
+        el.classList.remove("hide");
+      }
+
+      // Fade previous element as next crosses the viewport midpoint.
+      // Start: next.top == startY -> opacity 1
+      // End:   next.top == 0    -> opacity minOpacity
+      const denom = Math.max(1, startY);
+      for (let i = 0; i < mediaEls.length - 1; i++) {
+        const prev = mediaEls[i]!;
+        const next = mediaEls[i + 1]!;
+        const nextTop = next.getBoundingClientRect().top;
+        const progress = clamp01((startY - nextTop) / denom);
+        if (progress <= 0) continue;
+        const opacity = 1 - progress * (1 - minOpacity);
+        prev.style.opacity = String(opacity);
+      }
+
+      // When the "next-to-next" element crosses the 2/3 line, hide the "previous-to-previous".
+      // Example: when element[2] crosses, add .hide to element[0]; when element[3] crosses, hide element[1]; etc.
+      for (let k = 2; k < mediaEls.length; k++) {
+        const nextNext = mediaEls[k]!;
+        const top = nextNext.getBoundingClientRect().top;
+        if (top <= startY) {
+          mediaEls[k - 2]?.classList.add("hide");
+        }
+      }
+    };
+
+    const schedule = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(update);
+    };
+
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    schedule();
+  }
+</script>
 

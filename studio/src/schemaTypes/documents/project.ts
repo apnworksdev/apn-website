@@ -22,6 +22,7 @@ export default defineType({
     },
   ],
   fields: [
+    // Main
     defineField({
       name: 'title',
       title: 'Title',
@@ -74,6 +75,8 @@ export default defineType({
       rows: 2,
       group: 'main',
     }),
+
+    // Data
     defineField({
       name: 'year',
       title: 'Year',
@@ -111,6 +114,18 @@ export default defineType({
       group: 'data',
     }),
     defineField({
+      name: 'typeface',
+      title: 'Typeface',
+      type: 'string',
+      group: 'data',
+    }),
+    defineField({
+      name: 'animationBy',
+      title: 'Animation By',
+      type: 'string',
+      group: 'data',
+    }),
+    defineField({
       name: 'customCredits',
       title: 'Custom Credits',
       type: 'array',
@@ -139,11 +154,36 @@ export default defineType({
       type: 'textLinks',
       group: 'data'
     }),
+
+    // Content
     defineField({
-      name: 'media',
+      name: 'projectType',
+      title: 'Project Type',
+      type: 'string',
+      group: 'content',
+      initialValue: 'regular',
+      options: {
+        layout: 'radio',
+        list: [
+          {title: 'Regular', value: 'regular'},
+          {title: 'Extended', value: 'extended'},
+        ],
+      },
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'regularMedia',
       title: 'Media',
       type: 'mediaArray',
       group: 'content',
+      hidden: ({document}) => document?.projectType !== 'regular',
+    }),
+    defineField({
+      name: 'extendedMedia',
+      title: 'Extended Media',
+      type: 'mediaArray',
+      group: 'content',
+      hidden: ({document}) => document?.projectType !== 'extended',
     }),
   ],
   preview: {
