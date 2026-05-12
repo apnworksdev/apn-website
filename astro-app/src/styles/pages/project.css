@@ -1,70 +1,123 @@
+.project__container {
+  position: relative;
+  --project-title-offset: 0px;
+  --project-media-max-width: 1600px;
+  --project-media-inline-gutter: calc(var(--gap) * 4);
+}
+
+.project__title-sticky {
+  position: sticky;
+  top: 0;
+  height: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
 .project__title {
   text-align: center;
   padding: var(--separator-large) 0;
-  position: sticky;
-  top: 0;
+  margin: 0 auto;
+  width: max-content;
+  max-width: calc(100% - var(--gap) * 2);
 }
 
 .project__media {
   display: flex;
-  display: contents;
   flex-direction: column;
   gap: 2px;
   align-items: center;
+  padding-top: var(--project-title-offset);
 }
 
+/* Intrinsic box: height follows aspect ratio once max-width binds; max-height caps tall assets. Sticky `top` is set in JS from measured height. */
+
 .project__image {
+  --project-media-max-height: 70dvh;
   line-height: 0;
-  border: 0.5px solid var(--black);
+  box-shadow: 0 0 0 0.5px var(--black);
   position: sticky;
   margin: 0 auto 2px;
   width: fit-content;
+  height: fit-content;
+  max-width: min(var(--project-media-max-width), calc(100vw - var(--project-media-inline-gutter)));
+  max-height: var(--project-media-max-height);
 }
 
-.project__image.hide {
-  opacity: 0!important;
-  transition: opacity 0.5s var(--transition-effect);
-}
+/* Opacity/pointer-events for project media — driven inline in project page script (no transition: avoids RAF/sticky jitter). */
 
 .project__image.x-landscape {
-  /* width: calc(var(--column) * 16 + var(--gap) * 15); */
-  height: calc(var(--column) * 9 + var(--gap) * 8);
-  top: calc(50% - (var(--column) * 9 + var(--gap) * 8) / 2);
+  --project-media-max-height: 65dvh;
 }
 
 .project__image.landscape {
-  /* width: calc(var(--column) * 14 + var(--gap) * 13); */
-  height: calc(var(--column) * 10 + var(--gap) * 9);
-  top: calc(50% - (var(--column) * 10 + var(--gap) * 9) / 2);
+  --project-media-max-height: 70dvh;
 }
 
 .project__image.portrait {
-  /* width: calc(var(--column) * 10 + var(--gap) * 9); */
-  height: calc(var(--column) * 12 + var(--gap) * 11);
-  top: calc(50% - (var(--column) * 12 + var(--gap) * 11) / 2);
+  --project-media-max-height: 75dvh;
+}
+
+.project__image.square {
+  --project-media-max-height: 72dvh;
 }
 
 .project__image.x-portrait {
-  /* width: calc(var(--column) * 9 + var(--gap) * 8); */
-  height: calc(var(--column) * 14 + var(--gap) * 13);
-  top: calc(50% - (var(--column) * 14 + var(--gap) * 13) / 2);
+  --project-media-max-height: 80dvh;
 }
 
 .project__image-element {
-  /* width: 100%; */
+  display: block;
   width: auto;
-  height: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: var(--project-media-max-height);
+  object-fit: contain;
+}
+
+.project__video {
+  --project-media-max-height: 70dvh;
+  line-height: 0;
+  border: 0.5px solid var(--black);
+  position: sticky;
+  margin: 0 auto;
+  width: fit-content;
+  height: fit-content;
+  max-width: min(var(--project-media-max-width), calc(100vw - var(--project-media-inline-gutter)));
+  max-height: var(--project-media-max-height);
+}
+
+.project__video-element {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: var(--project-media-max-height);
+  object-fit: contain;
 }
 
 .project__credits-container {
-  text-align: center;
-  padding: var(--separator-large) var(--gap) var(--gap);
+  box-sizing: border-box;
+  line-height: 0;
   position: sticky;
-  top: 0;
+  margin: 0 auto;
+  width: fit-content;
+  max-width: calc(100% - var(--gap) * 2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  /* `margin-bottom` and `top` from JS for credits (`data-project-slide="credits"`). */
+  /* padding-left: var(--gap);
+  padding-right: var(--gap); */
 }
 
 .project__credits-separator {
+  line-height: normal;
   margin-bottom: var(--separator-large);
+}
+
+.project__credits {
+  line-height: normal;
 }
 
 .project__credits-separator-text {
@@ -81,4 +134,5 @@
 .project__links {
   --font-s: 9px;
   margin-top: var(--separator-large);
+  line-height: normal;
 }

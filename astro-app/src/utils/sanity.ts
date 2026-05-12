@@ -215,6 +215,13 @@ export async function getHomepage(): Promise<Homepage | null> {
     groq`*[_type == "homepage"][0]{
       _id,
       credits,
+      stamps[]{
+        _key,
+        image,
+        top,
+        side,
+        sideOffset
+      },
       modules[]{
         _type,
         _key,
@@ -311,6 +318,15 @@ export interface Homepage {
   _id: string;
   modules?: HomepageModule[];
   credits?: PortableTextBlock[];
+  stamps?: HomepageStamp[];
+}
+
+export interface HomepageStamp {
+  _key: string;
+  image?: ImageAsset & { alt?: string };
+  top?: number;
+  side?: "left" | "right";
+  sideOffset?: number;
 }
 
 export type HomepageModule =

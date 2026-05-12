@@ -2,6 +2,18 @@
   transition: opacity 0.5s var(--transition-effect);
 }
 
+.homepage__stamps {
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+.homepage__stamp {
+  position: absolute;
+  z-index: 5;
+  width: min(18vw, 220px);
+  height: auto;
+}
+
 html.show-visuals {
   overflow: hidden;
 }
@@ -23,7 +35,7 @@ html.show-visuals .homepage__container {
   align-items: center;
   justify-content: center;
   text-align: center;
-  margin: var(--separator-large) 0;
+  padding: var(--separator-large) 0;
 }
 
 .hero__title {

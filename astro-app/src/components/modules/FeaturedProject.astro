@@ -64,8 +64,8 @@ function formatTitleWithStrongLetters(title: string) {
                     <SanityImage
                       image={mediaItem.asset as ImageAsset}
                       alt={mediaItem.alt || project.title || ""}
-                      width={1200}
-                      sizes="(max-width: 768px) 100vw, 1200px"
+                      width={2000}
+                      sizes="(max-width: 768px) 100vw, min(100vw, 2000px)"
                       loading="lazy"
                       class="module--featured-project__image-element media-element"
                     />
@@ -78,7 +78,7 @@ function formatTitleWithStrongLetters(title: string) {
               // Get poster image URL if available
               let posterUrl: string | undefined;
               if (mediaItem.poster && mediaItem.poster.asset) {
-                const posterImageUrl = urlFor(mediaItem.poster.asset as ImageAsset).width(1200).url();
+                const posterImageUrl = urlFor(mediaItem.poster.asset as ImageAsset).width(2400).url();
                 posterUrl = posterImageUrl;
               }
               return (

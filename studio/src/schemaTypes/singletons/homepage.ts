@@ -17,6 +17,11 @@ export default defineType({
       default: true,
     },
     {
+      name: 'stamps',
+      title: 'Stamps',
+      default: false,
+    },
+    {
       name: 'info',
       title: 'Info',
       default: false,
@@ -42,6 +47,52 @@ export default defineType({
       title: 'Credits',
       type: 'blockContent',
       group: 'info',
+    }),
+    defineField({
+      name: 'stamps',
+      title: 'Stamps',
+      type: 'array',
+      of: [
+        defineArrayMember({
+          name: 'stamp',
+          title: 'Stamp',
+          type: 'object',
+          fields: [
+            defineField({
+              name: 'image',
+              title: 'Image',
+              type: 'image',
+              validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+              name: 'top',
+              title: 'Top (%)',
+              type: 'number',
+              initialValue: 0,
+            }),
+            defineField({
+              name: 'side',
+              title: 'Side',
+              type: 'string',
+              options: {
+                list: [
+                  {title: 'Left', value: 'left'},
+                  {title: 'Right', value: 'right'},
+                ],
+                layout: 'radio',
+              },
+              initialValue: 'left',
+            }),
+            defineField({
+              name: 'sideOffset',
+              title: 'Side Offset (%)',
+              type: 'number',
+              initialValue: 0,
+            }),
+          ],
+        }),
+      ],
+      group: 'stamps',
     }),
   ],
   preview: {

@@ -9,6 +9,8 @@
 
   --cream: #FFFCF1;
   --black: #000000;
+  --selection-background-color: #f9f964;
+  --selection-foreground-color: var(--black);
 
   --font-s: 9px;
   --font-m: 12px;

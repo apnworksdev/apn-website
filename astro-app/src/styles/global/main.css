@@ -4,3 +4,7 @@ html {
   font-family: 'JJannon', serif;
   letter-spacing: 0.06rem;
 }
+
+main {
+  position: relative;
+}

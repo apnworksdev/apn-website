@@ -92,7 +92,7 @@ const projectGroups =
                     project.thumbnail[0]._type === "image" &&
                     project.thumbnail[0].asset &&
                     !("url" in project.thumbnail[0].asset)
-                      ? urlFor(project.thumbnail[0].asset as ImageAsset).width(1200).url()
+                      ? urlFor(project.thumbnail[0].asset as ImageAsset).width(2000).url()
                       : ""
                   }
                 >

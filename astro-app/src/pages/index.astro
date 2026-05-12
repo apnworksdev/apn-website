@@ -12,6 +12,7 @@ import type { ImageAsset } from "@sanity/types";
 const homepage = await getHomepage();
 const featuredCarousel = await getFeaturedCarousel();
 const homepageModules = homepage?.modules ?? [];
+const homepageStamps = homepage?.stamps ?? [];
 const slugifyForId = (value: string) =>
   value
     .trim()
@@ -45,6 +46,27 @@ const orderedNavItems = navItems.map((item, index) => ({
 ---
 
 <Layout title="Home" navItems={orderedNavItems}>
+  {homepageStamps.length > 0 ? (
+    <div class="homepage__stamps" aria-hidden="true">
+      {homepageStamps.map((stamp) => {
+        if (!stamp.image?.asset) return null;
+        const side = stamp.side === "right" ? "right" : "left";
+        const top = Number.isFinite(stamp.top) ? stamp.top : 0;
+        const sideOffset = Number.isFinite(stamp.sideOffset) ? stamp.sideOffset : 0;
+        const style = `top:${top}%;${side}:${sideOffset}%;`;
+
+        return (
+          <img
+            class="homepage__stamp"
+            src={urlFor(stamp.image.asset as ImageAsset).width(320).url()}
+            alt=""
+            style={style}
+          />
+        );
+      })}
+    </div>
+  ) : null}
+
   <div class="homepage__container">
     {homepageModules.length > 0 ? (
       homepageModules.map((module, index) => (
@@ -92,7 +114,7 @@ const orderedNavItems = navItems.map((item, index) => ({
               {isImage && (
                 <img
                   class="featured-carousel__media"
-                  src={urlFor(firstMedia.asset as ImageAsset).width(1200).url()}
+                  src={urlFor(firstMedia.asset as ImageAsset).width(2400).url()}
                   alt={firstMedia.alt ?? item.project?.title ?? ""}
                 />
               )}
@@ -101,7 +123,7 @@ const orderedNavItems = navItems.map((item, index) => ({
                   src={firstMedia.asset.url}
                   poster={
                     firstMedia.poster?.asset && !("url" in firstMedia.poster.asset)
-                      ? urlFor(firstMedia.poster.asset as ImageAsset).width(1200).url()
+                      ? urlFor(firstMedia.poster.asset as ImageAsset).width(2400).url()
                       : undefined
                   }
                   controls

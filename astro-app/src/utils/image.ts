@@ -5,5 +5,5 @@ import { sanityClient } from "sanity:client";
 const builder = imageUrlBuilder(sanityClient);
 
 export function urlFor(source: Image | ImageAsset) {
-  return builder.image(source);
+  return builder.image(source).quality(88).auto("format");
 }

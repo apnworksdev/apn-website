@@ -23,13 +23,9 @@ const {
 } = Astro.props;
 
 const imageUrl = urlFor(image);
-const src = imageUrl.width(width).url();
-const srcset = [
-  imageUrl.width(400).url() + " 400w",
-  imageUrl.width(800).url() + " 800w",
-  imageUrl.width(1200).url() + " 1200w",
-  imageUrl.width(1600).url() + " 1600w",
-].join(", ");
+const src = imageUrl.width(Math.min(width, 3200)).url();
+const srcsetWidths = [400, 800, 1200, 1600, 2000, 2400, 3200];
+const srcset = srcsetWidths.map((w) => `${imageUrl.width(w).url()} ${w}w`).join(", ");
 
 const altText = alt || (typeof image === "object" && "alt" in image && typeof image.alt === "string" ? image.alt : "");
 ---
