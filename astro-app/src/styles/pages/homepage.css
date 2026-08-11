@@ -279,6 +279,17 @@ html.show-visuals .homepage__container {
   margin: 0 0 0 auto;
 }
 
+.table-of-works__sort-alpha-button,
+.table-of-works__sort-year-button {
+  opacity: 0.35;
+  transition: opacity 0.2s var(--transition-effect);
+}
+
+.table-of-works__sort-alpha-button.is-active,
+.table-of-works__sort-year-button.is-active {
+  opacity: 1;
+}
+
 .table-of-works__project-title-status {
   display: flex;
   justify-content: space-between;

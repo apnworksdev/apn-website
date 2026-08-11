@@ -1,40 +1,67 @@
 ---
 // https://docs.astro.build/en/guides/view-transitions/
-import { ClientRouter } from 'astro:transitions';
-import Nav from '../components/global/Nav.astro';
-import Footer from '../components/global/Footer.astro';
-import '../styles/global/fonts.css';
-import '../styles/global/variables.css';
-import '../styles/global/global.css';
-import '../styles/global/main.css';
-import '../styles/global/nav.css';
+import { ClientRouter } from "astro:transitions";
+import Nav from "../components/global/Nav.astro";
+import "../styles/global/fonts.css";
+import "../styles/global/variables.css";
+import "../styles/global/global.css";
+import "../styles/global/main.css";
+import "../styles/global/nav.css";
 
 interface Props {
   title: string;
+  description?: string;
+  ogImage?: string;
   navItems?: { id: string; label: string; order: number }[];
 }
 
-const { title, navItems = [] } = Astro.props;
+const {
+  title,
+  description = "APN — Design & Development studio",
+  ogImage,
+  navItems = [],
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
+const absoluteOgImage = ogImage
+  ? ogImage.startsWith("http")
+    ? ogImage
+    : new URL(ogImage, Astro.site ?? Astro.url).href
+  : undefined;
 ---
 
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width"
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    {absoluteOgImage && <meta property="og:image" content={absoluteOgImage} />}
+    <meta name="twitter:card" content={absoluteOgImage ? "summary_large_image" : "summary"} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {absoluteOgImage && <meta name="twitter:image" content={absoluteOgImage} />}
+    <link
+      rel="preload"
+      href="/fonts/JJannon-Regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
     />
     <link
-      rel="icon"
-      type="image/svg+xml"
-      href="/favicon.svg"
+      rel="preload"
+      href="/fonts/JJannon-Bold.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
     />
-    <meta
-      name="generator"
-      content={Astro.generator}
-    />
-
     <title>{title}</title>
     <ClientRouter />
   </head>
@@ -52,81 +79,104 @@ const { title, navItems = [] } = Astro.props;
       <main>
         <slot />
       </main>
-      <Footer />
     </div>
 
     <script>
-      const preview = document.querySelector<HTMLElement>("[data-project-hover-preview]");
-      const img = preview?.querySelector<HTMLImageElement>(".project-hover-preview__image") ?? null;
-      const excerptEl = preview?.querySelector<HTMLElement>(".project-hover-preview__excerpt") ?? null;
+      let abortController: AbortController | null = null;
 
-      const clearPreview = () => {
-        if (!preview) return;
-        preview.hidden = true;
-        document.documentElement.classList.remove("show-project-hover");
-        if (img) {
-          img.hidden = true;
-          img.removeAttribute("src");
-          img.removeAttribute("alt");
-        }
-        if (excerptEl) excerptEl.textContent = "";
-      };
+      const bootHoverPreview = () => {
+        abortController?.abort();
+        abortController = new AbortController();
+        const { signal } = abortController;
 
-      const setPreviewFromEl = (el: HTMLElement) => {
-        if (!preview) return;
-        const title = el.dataset.previewTitle ?? "";
-        const excerpt = el.dataset.previewExcerpt ?? "";
-        const image = el.dataset.previewImage ?? "";
+        const preview = document.querySelector<HTMLElement>("[data-project-hover-preview]");
+        const img = preview?.querySelector<HTMLImageElement>(".project-hover-preview__image") ?? null;
+        const excerptEl = preview?.querySelector<HTMLElement>(".project-hover-preview__excerpt") ?? null;
 
-        // If this hovered project has no preview content, close the "hover open" state
-        // but keep the previous preview content visible.
-        if (!image && !excerpt) {
+        const clearPreview = () => {
+          if (!preview) return;
+          preview.hidden = true;
           document.documentElement.classList.remove("show-project-hover");
-          return;
-        }
-
-        preview.hidden = false;
-        document.documentElement.classList.add("show-project-hover");
-        if (excerptEl) excerptEl.textContent = excerpt;
-        if (img) {
-          if (image) {
-            img.hidden = false;
-            img.setAttribute("src", image);
-            img.alt = title;
-          } else {
+          if (img) {
             img.hidden = true;
             img.removeAttribute("src");
             img.removeAttribute("alt");
           }
-        }
+          if (excerptEl) excerptEl.textContent = "";
+        };
+
+        const setPreviewFromEl = (el: HTMLElement) => {
+          if (!preview) return;
+          const title = el.dataset.previewTitle ?? "";
+          const excerpt = el.dataset.previewExcerpt ?? "";
+          const image = el.dataset.previewImage ?? "";
+
+          if (!image && !excerpt) {
+            document.documentElement.classList.remove("show-project-hover");
+            return;
+          }
+
+          preview.hidden = false;
+          document.documentElement.classList.add("show-project-hover");
+          if (excerptEl) excerptEl.textContent = excerpt;
+          if (img) {
+            if (image) {
+              img.hidden = false;
+              img.setAttribute("src", image);
+              img.alt = title;
+            } else {
+              img.hidden = true;
+              img.removeAttribute("src");
+              img.removeAttribute("alt");
+            }
+          }
+        };
+
+        const getPreviewTarget = (from: EventTarget | null) =>
+          (from as Element | null)?.closest?.("[data-project-preview]") as HTMLElement | null;
+
+        document.addEventListener(
+          "mouseover",
+          (e) => {
+            const target = getPreviewTarget(e.target);
+            if (target) setPreviewFromEl(target);
+          },
+          { signal }
+        );
+
+        document.addEventListener(
+          "mouseout",
+          (e) => {
+            const toEl = e.relatedTarget as Element | null;
+            if (toEl?.closest?.("[data-project-preview]")) return;
+            document.documentElement.classList.remove("show-project-hover");
+          },
+          { signal }
+        );
+
+        document.addEventListener(
+          "focusin",
+          (e) => {
+            const target = getPreviewTarget(e.target);
+            if (target) setPreviewFromEl(target);
+          },
+          { signal }
+        );
+
+        document.addEventListener(
+          "focusout",
+          (e) => {
+            const toEl = e.relatedTarget as Element | null;
+            if (toEl?.closest?.("[data-project-preview]")) return;
+            document.documentElement.classList.remove("show-project-hover");
+          },
+          { signal }
+        );
+
+        document.addEventListener("astro:before-preparation", clearPreview, { signal });
       };
 
-      const getPreviewTarget = (from: EventTarget | null) =>
-        (from as Element | null)?.closest?.("[data-project-preview]") as HTMLElement | null;
-
-      document.addEventListener("mouseover", (e) => {
-        const target = getPreviewTarget(e.target);
-        if (target) setPreviewFromEl(target);
-      });
-
-      document.addEventListener("mouseout", (e) => {
-        const toEl = e.relatedTarget as Element | null;
-        if (toEl?.closest?.("[data-project-preview]")) return;
-        // Keep content, but remove "hover open" state.
-        document.documentElement.classList.remove("show-project-hover");
-      });
-
-      document.addEventListener("focusin", (e) => {
-        const target = getPreviewTarget(e.target);
-        if (target) setPreviewFromEl(target);
-      });
-
-      document.addEventListener("focusout", (e) => {
-        const toEl = e.relatedTarget as Element | null;
-        if (toEl?.closest?.("[data-project-preview]")) return;
-        // Keep content, but remove "hover open" state.
-        document.documentElement.classList.remove("show-project-hover");
-      });
+      document.addEventListener("astro:page-load", bootHoverPreview);
     </script>
   </body>
 </html>

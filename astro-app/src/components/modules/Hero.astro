@@ -26,6 +26,9 @@ const { module } = Astro.props;
         image={module.image}
         alt={module.image.alt || ""}
         width={1200}
+        loading="eager"
+        fetchpriority="high"
+        sizes="(max-width: 768px) 100vw, min(100vw, 1200px)"
       />
     </div>
   )}

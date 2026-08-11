@@ -48,53 +48,79 @@ function groupProjectsByLetter(projects: Project[]): Map<string, Project[]> {
   return groups;
 }
 
-const projectGroups =
-  module.projects && module.projects.length > 0
-    ? groupProjectsByLetter(module.projects)
-    : null;
+function groupProjectsByYear(projects: Project[]): Map<string, Project[]> {
+  const sorted = [...projects].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+  const groups = new Map<string, Project[]>();
+  for (const project of sorted) {
+    const key = project.year ? String(project.year) : "—";
+    const list = groups.get(key) ?? [];
+    list.push(project);
+    groups.set(key, list);
+  }
+  return groups;
+}
+
+const projects = module.projects ?? [];
+const alphaGroups = projects.length > 0 ? groupProjectsByLetter(projects) : null;
+const yearGroups = projects.length > 0 ? groupProjectsByYear(projects) : null;
+
+function previewImageUrl(project: Project): string {
+  if (
+    project.thumbnail?.[0]?._type === "image" &&
+    project.thumbnail[0].asset &&
+    !("url" in project.thumbnail[0].asset)
+  ) {
+    return urlFor(project.thumbnail[0].asset as ImageAsset).width(640).url();
+  }
+  return "";
+}
 ---
 
-<section class="table-of-works">
+<section class="table-of-works" data-table-of-works>
   <div class="table-of-works__header">
     <div class="table-of-works__header-item table-of-works__sort-alpha font-m">
-      <button class="table-of-works__sort-alpha-button">
+      <button
+        type="button"
+        class="table-of-works__sort-alpha-button is-active"
+        data-sort="alpha"
+        aria-pressed="true"
+      >
         abc
       </button>
     </div>
 
-    <h2 class="table-of-works__title small-caps font-m"><strong>T</strong>able of <strong>W</strong>orks</h2>
+    <h2 class="table-of-works__title small-caps font-m">
+      <strong>T</strong>able of <strong>W</strong>orks
+    </h2>
 
     <div class="table-of-works__header-item table-of-works__sort-year font-m">
-      <button class="table-of-works__sort-year-button">
+      <button
+        type="button"
+        class="table-of-works__sort-year-button"
+        data-sort="year"
+        aria-pressed="false"
+      >
         123
-      </button> 
+      </button>
     </div>
   </div>
 
-  {projectGroups && (
-    <div class="table-of-works__groups font-m">
-      {Array.from(projectGroups.keys())
+  {alphaGroups && (
+    <div class="table-of-works__groups font-m" data-sort-view="alpha">
+      {Array.from(alphaGroups.keys())
         .sort((a, b) => (a === "#" ? 1 : b === "#" ? -1 : a.localeCompare(b)))
         .map((letter) => (
           <div class="table-of-works__group" data-letter={letter}>
             <h3 class="table-of-works__letter">{letter}.</h3>
             <div class="table-of-works__grid">
-              {projectGroups.get(letter)!.map((project) => (
+              {alphaGroups.get(letter)!.map((project) => (
                 <a
                   href={project.slug?.current ? `/project/${project.slug.current}` : "#"}
                   class="table-of-works__item"
                   data-project-preview
                   data-preview-title={project.title ?? ""}
                   data-preview-excerpt={project.excerpt ?? project.description ?? ""}
-                  data-preview-image={
-                    project.thumbnail &&
-                    project.thumbnail[0] &&
-                    project.thumbnail[0]._type === "image" &&
-                    project.thumbnail[0].asset &&
-                    !("url" in project.thumbnail[0].asset)
-                      ? urlFor(project.thumbnail[0].asset as ImageAsset).width(2000).url()
-                      : ""
-                  }
+                  data-preview-image={previewImageUrl(project)}
                 >
                   <div class="table-of-works__project-title-status">
                     {project.title && (
@@ -111,4 +137,73 @@ const projectGroups =
         ))}
     </div>
   )}
+
+  {yearGroups && (
+    <div class="table-of-works__groups font-m" data-sort-view="year" hidden>
+      {Array.from(yearGroups.keys()).map((year) => (
+        <div class="table-of-works__group" data-letter={year}>
+          <h3 class="table-of-works__letter">{year}.</h3>
+          <div class="table-of-works__grid">
+            {yearGroups.get(year)!.map((project) => (
+              <a
+                href={project.slug?.current ? `/project/${project.slug.current}` : "#"}
+                class="table-of-works__item"
+                data-project-preview
+                data-preview-title={project.title ?? ""}
+                data-preview-excerpt={project.excerpt ?? project.description ?? ""}
+                data-preview-image={previewImageUrl(project)}
+              >
+                <div class="table-of-works__project-title-status">
+                  {project.title && (
+                    <h3 class="table-of-works__project-title">{project.title}</h3>
+                  )}
+                  {project.status && (
+                    <p class="table-of-works__project-status">{formatStatus(project.status)}</p>
+                  )}
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
 </section>
+
+<script>
+  let abortController: AbortController | null = null;
+
+  const bootTableOfWorks = () => {
+    abortController?.abort();
+    abortController = new AbortController();
+    const { signal } = abortController;
+
+    document.querySelectorAll<HTMLElement>("[data-table-of-works]").forEach((root) => {
+      const buttons = root.querySelectorAll<HTMLButtonElement>("[data-sort]");
+      const views = root.querySelectorAll<HTMLElement>("[data-sort-view]");
+
+      buttons.forEach((button) => {
+        button.addEventListener(
+          "click",
+          () => {
+            const sort = button.dataset.sort;
+            if (!sort) return;
+
+            buttons.forEach((btn) => {
+              const active = btn.dataset.sort === sort;
+              btn.classList.toggle("is-active", active);
+              btn.setAttribute("aria-pressed", active ? "true" : "false");
+            });
+
+            views.forEach((view) => {
+              view.hidden = view.dataset.sortView !== sort;
+            });
+          },
+          { signal }
+        );
+      });
+    });
+  };
+
+  document.addEventListener("astro:page-load", bootTableOfWorks);
+</script>

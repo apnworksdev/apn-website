@@ -2,7 +2,7 @@
 import type { InferGetStaticParamsType } from "astro";
 import Layout from "../../layouts/Layout.astro";
 import '../../styles/pages/project.css';
-import { getProject, getProjects } from "../../utils/sanity";
+import { getProject, getProjectSlugs } from "../../utils/sanity";
 import { urlFor } from "../../utils/image";
 import type { ImageAsset } from "@sanity/types";
 import type { FileAsset } from "../../utils/sanity";
@@ -10,20 +10,21 @@ import SanityImage from "../../components/SanityImage.astro";
 import PortableText from "../../components/PortableText.astro";
 
 export async function getStaticPaths() {
-  const projects = await getProjects();
-  return projects
-    .map((p) => p.slug?.current)
-    .filter((s): s is string => Boolean(s))
-    .map((slug) => ({ params: { slug } }));
+  const slugs = await getProjectSlugs();
+  return slugs.map((slug) => ({ params: { slug } }));
 }
 
 type Params = InferGetStaticParamsType<typeof getStaticPaths>;
 const { slug } = Astro.params as Params;
 
 const project = await getProject(slug);
+const gallery =
+  project?.projectType === "extended"
+    ? project?.extendedMedia
+    : project?.regularMedia;
 ---
 
-<Layout title={project?.title ?? "Project"}>
+<Layout title={project?.title ?? "Project"} description={project?.excerpt ?? project?.description}>
   <section class="project">
     <div class="project__container">
       {project?.title && (
@@ -32,10 +33,10 @@ const project = await getProject(slug);
         </div>
       )}
 
-      {project?.projectType !== "extended" && project?.regularMedia && project.regularMedia.length > 0 && (
+      {gallery && gallery.length > 0 && (
         <>
           <div class="project__media">
-            {project.regularMedia.map((mediaItem) => {
+            {gallery.map((mediaItem) => {
               if (mediaItem._type === "image" && "asset" in mediaItem && mediaItem.asset) {
                 const dims = (mediaItem as { dimensions?: { width?: number; height?: number } }).dimensions;
                 const w = dims?.width ?? 0;
@@ -54,7 +55,7 @@ const project = await getProject(slug);
                   >
                     <SanityImage
                       image={mediaItem as any}
-                      alt={mediaItem.alt || project.title || ""}
+                      alt={mediaItem.alt || project?.title || ""}
                       width={1600}
                       sizes="(max-width: 768px) 100vw, min(100vw, 1600px)"
                       loading="lazy"

@@ -2,10 +2,11 @@
 import Layout from "../layouts/Layout.astro";
 import { getHomepage, getFeaturedCarousel } from "../utils/sanity";
 import ModuleRenderer from "../components/ModuleRenderer.astro";
-import '../styles/pages/homepage.css';
-import '../styles/pages/featuredCarousel.css';
+import "../styles/pages/homepage.css";
+import "../styles/pages/featuredCarousel.css";
 import PortableText from "../components/PortableText.astro";
 import FirstLetterStrong from "../components/FirstLetterStrong.astro";
+import SanityImage from "../components/SanityImage.astro";
 import { urlFor } from "../utils/image";
 import type { ImageAsset } from "@sanity/types";
 
@@ -37,15 +38,26 @@ const navItems = homepageModules
           label,
         }
       : null;
-  })  
+  })
   .filter((item): item is { id: string; label: string } => Boolean(item));
 const orderedNavItems = navItems.map((item, index) => ({
   ...item,
   order: index + 1,
 }));
+
+const heroModule = homepageModules.find((m) => m._type === "hero");
+const ogImage =
+  heroModule && heroModule._type === "hero" && heroModule.image
+    ? urlFor(heroModule.image).width(1200).url()
+    : undefined;
 ---
 
-<Layout title="Home" navItems={orderedNavItems}>
+<Layout
+  title="APN"
+  description="APN — Design & Development studio"
+  ogImage={ogImage}
+  navItems={orderedNavItems}
+>
   {homepageStamps.length > 0 ? (
     <div class="homepage__stamps" aria-hidden="true">
       {homepageStamps.map((stamp) => {
@@ -61,6 +73,8 @@ const orderedNavItems = navItems.map((item, index) => ({
             src={urlFor(stamp.image.asset as ImageAsset).width(320).url()}
             alt=""
             style={style}
+            loading="lazy"
+            decoding="async"
           />
         );
       })}
@@ -68,35 +82,44 @@ const orderedNavItems = navItems.map((item, index) => ({
   ) : null}
 
   <div class="homepage__container">
-    {homepageModules.length > 0 ? (
-      homepageModules.map((module, index) => (
-        <section
-          id={moduleSectionIds[index]}
-          data-nav-section
-        >
-          <ModuleRenderer module={module} />
-        </section>
-      ))
-    ) : null }
+    {homepageModules.length > 0
+      ? homepageModules.map((module, index) => (
+          <section id={moduleSectionIds[index]} data-nav-section>
+            <ModuleRenderer module={module} />
+          </section>
+        ))
+      : null}
 
     {homepage?.credits && homepage.credits.length > 0 ? (
       <div class="homepage__credits">
         <PortableText class="font-s" content={homepage.credits} />
       </div>
-    ) : null }
+    ) : null}
   </div>
 
-  <div class="featured-carousel__container" data-carousel data-count={featuredCarousel?.modules?.length ?? 0}>
-    {featuredCarousel?.modules && featuredCarousel.modules.length > 0 && (
+  <div
+    class="featured-carousel__container"
+    data-carousel
+    data-count={featuredCarousel?.modules?.length ?? 0}
+  >
+    {featuredCarousel?.modules &&
+      featuredCarousel.modules.length > 0 &&
       featuredCarousel.modules.map((item, index) => {
         const firstMedia = item.media?.[0];
         const isImage = firstMedia?._type === "image" && firstMedia?.asset;
-        const isFile = firstMedia?._type === "file" && firstMedia?.asset && "url" in firstMedia.asset;
-        const href = item.project?.slug?.current ? `/project/${item.project.slug.current}` : undefined;
+        const isFile =
+          firstMedia?._type === "file" && firstMedia?.asset && "url" in firstMedia.asset;
+        const href = item.project?.slug?.current
+          ? `/project/${item.project.slug.current}`
+          : undefined;
         const assetForDimensions = isImage
-          ? (firstMedia?.asset as { metadata?: { dimensions?: { width?: number; height?: number } } } | undefined)
+          ? (firstMedia?.asset as
+              | { metadata?: { dimensions?: { width?: number; height?: number } } }
+              | undefined)
           : firstMedia?._type === "file" && firstMedia?.poster?.asset
-            ? (firstMedia.poster.asset as { metadata?: { dimensions?: { width?: number; height?: number } } })
+            ? (firstMedia.poster.asset as {
+                metadata?: { dimensions?: { width?: number; height?: number } };
+              })
             : undefined;
         const dims = assetForDimensions?.metadata?.dimensions;
         const w = dims?.width ?? 0;
@@ -111,11 +134,15 @@ const orderedNavItems = navItems.map((item, index) => ({
             data-media-orientation={mediaOrientation}
           >
             <div class="featured-carousel__item__content">
-              {isImage && (
-                <img
+              {isImage && firstMedia.asset && !("url" in firstMedia.asset) && (
+                <SanityImage
                   class="featured-carousel__media"
-                  src={urlFor(firstMedia.asset as ImageAsset).width(2400).url()}
+                  image={firstMedia.asset as ImageAsset}
                   alt={firstMedia.alt ?? item.project?.title ?? ""}
+                  width={1600}
+                  sizes="(max-width: 768px) 100vw, min(90vw, 1600px)"
+                  loading={index === 0 ? "eager" : "lazy"}
+                  fetchpriority={index === 0 ? "high" : "auto"}
                 />
               )}
               {isFile && firstMedia.asset && "url" in firstMedia.asset && (
@@ -123,9 +150,12 @@ const orderedNavItems = navItems.map((item, index) => ({
                   src={firstMedia.asset.url}
                   poster={
                     firstMedia.poster?.asset && !("url" in firstMedia.poster.asset)
-                      ? urlFor(firstMedia.poster.asset as ImageAsset).width(2400).url()
+                      ? urlFor(firstMedia.poster.asset as ImageAsset).width(1600).url()
                       : undefined
                   }
+                  preload="metadata"
+                  muted
+                  playsinline
                   controls
                 />
               )}
@@ -136,50 +166,74 @@ const orderedNavItems = navItems.map((item, index) => ({
                     {item.label && item.label.length > 0 ? (
                       <PortableText content={item.label} strongFirstLetters />
                     ) : item.project?.title ? (
-                      <h3><FirstLetterStrong text={item.project.title} /></h3>
+                      <h3>
+                        <FirstLetterStrong text={item.project.title} />
+                      </h3>
                     ) : null}
                   </a>
                 ) : item.label && item.label.length > 0 ? (
                   <PortableText content={item.label} strongFirstLetters />
                 ) : item.project?.title ? (
-                  <h3><FirstLetterStrong text={item.project.title} /></h3>
+                  <h3>
+                    <FirstLetterStrong text={item.project.title} />
+                  </h3>
                 ) : null}
               </div>
             </div>
           </div>
         );
-      })
-    )}
+      })}
   </div>
 
   <script>
-    const container = document.querySelector(".featured-carousel__container[data-carousel]");
-    if (container) {
+    let abortController: AbortController | null = null;
+
+    const bootCarousel = () => {
+      abortController?.abort();
+      abortController = new AbortController();
+      const { signal } = abortController;
+
+      const container = document.querySelector(".featured-carousel__container[data-carousel]");
+      if (!container) return;
+
       const count = parseInt(container.getAttribute("data-count") ?? "0", 10);
       const items = container.querySelectorAll(".featured-carousel__item");
-      if (count > 0 && items.length > 0) {
-        const setActiveIndex = (nextIndex: number) => {
-          const current = container.querySelector(".featured-carousel__item.active");
-          current?.classList.remove("active");
-          items[nextIndex]?.classList.add("active");
-        };
+      if (count <= 0 || items.length === 0) return;
 
-        const getCurrentIndex = () => {
-          const current = container.querySelector(".featured-carousel__item.active");
-          return current ? parseInt((current as HTMLElement).dataset.index ?? "0", 10) : 0;
-        };
+      const setActiveIndex = (nextIndex: number) => {
+        const current = container.querySelector(".featured-carousel__item.active");
+        current?.classList.remove("active");
+        items[nextIndex]?.classList.add("active");
+      };
 
-        container.addEventListener("click", (e) => {
+      const getCurrentIndex = () => {
+        const current = container.querySelector(".featured-carousel__item.active");
+        return current ? parseInt((current as HTMLElement).dataset.index ?? "0", 10) : 0;
+      };
+
+      container.addEventListener(
+        "click",
+        (e) => {
           if ((e.target as Element).closest("a")) return;
           const currentIndex = getCurrentIndex();
           const nextIndex = (currentIndex + 1) % count;
           setActiveIndex(nextIndex);
-        });
+        },
+        { signal }
+      );
 
-        window.addEventListener("keydown", (e) => {
+      window.addEventListener(
+        "keydown",
+        (e) => {
           const target = e.target as HTMLElement | null;
           const tag = target?.tagName?.toLowerCase();
-          if (tag === "input" || tag === "textarea" || tag === "select" || target?.isContentEditable) return;
+          if (
+            tag === "input" ||
+            tag === "textarea" ||
+            tag === "select" ||
+            target?.isContentEditable
+          )
+            return;
           if (e.metaKey || e.ctrlKey || e.altKey) return;
 
           if (e.key === "ArrowRight") {
@@ -193,8 +247,11 @@ const orderedNavItems = navItems.map((item, index) => ({
             const prevIndex = (currentIndex - 1 + count) % count;
             setActiveIndex(prevIndex);
           }
-        });
-      }
-    }
+        },
+        { signal }
+      );
+    };
+
+    document.addEventListener("astro:page-load", bootCarousel);
   </script>
 </Layout>

@@ -1,97 +1,38 @@
-import { sanityClient } from "sanity:client";
 import type { PortableTextBlock } from "@portabletext/types";
 import type { ImageAsset, Slug } from "@sanity/types";
 import groq from "groq";
+import { sanityClient } from "./sanityClient";
 
-export async function getPosts(): Promise<Post[]> {
-  return await sanityClient.fetch(
-    groq`*[_type == "post" && defined(slug.current)] | order(_createdAt desc)`
-  );
-}
-
-export async function getPost(slug: string): Promise<Post> {
-  return await sanityClient.fetch(
-    groq`*[_type == "post" && slug.current == $slug][0]`,
-    {
-      slug,
-    }
-  );
-}
-
-export async function getProjects(): Promise<Project[]> {
-  return await sanityClient.fetch(
-    groq`*[_type == "project" && defined(slug.current)] | order(title asc){
+const mediaProjection = `{
+  _type,
+  _key,
+  _type == "image" => {
+    alt,
+    asset,
+    crop,
+    hotspot,
+    "dimensions": asset->metadata.dimensions
+  },
+  _type == "file" => {
+    "asset": asset->{
       _id,
-      title,
-      projectType,
-      slug,
-      thumbnail,
-      excerpt,
-      description,
-      year,
-      client,
-      location,
-      typeface,
-      animationBy,
-      techStack,
-      services,
-      customCredits[]{
-        credit,
-        text
-      },
-      links,
-      status,
-      designedBy,
-      regularMedia[]{
-        _type,
-        _key,
-        _type == "image" => {
-          alt,
-          asset,
-          crop,
-          hotspot,
-          "dimensions": asset->metadata.dimensions
-        },
-        _type == "file" => {
-          "asset": asset->{
-            _id,
-            url,
-            originalFilename,
-            mimeType,
-            size
-          },
-          poster{
-            "asset": asset->,
-            alt
-          }
-        }
-      },
-      extendedMedia[]{
-        _type,
-        _key,
-        _type == "image" => {
-          alt,
-          asset,
-          crop,
-          hotspot,
-          "dimensions": asset->metadata.dimensions
-        },
-        _type == "file" => {
-          "asset": asset->{
-            _id,
-            url,
-            originalFilename,
-            mimeType,
-            size
-          },
-          poster{
-            "asset": asset->,
-            alt
-          }
-        }
-      }
-    }`
+      url,
+      originalFilename,
+      mimeType,
+      size
+    },
+    poster{
+      "asset": asset->,
+      alt
+    }
+  }
+}`;
+
+export async function getProjectSlugs(): Promise<string[]> {
+  const slugs = await sanityClient.fetch<Array<string | null>>(
+    groq`*[_type == "project" && defined(slug.current)].slug.current`
   );
+  return slugs.filter((s): s is string => Boolean(s));
 }
 
 export async function getProject(slug: string): Promise<Project | null> {
@@ -118,54 +59,8 @@ export async function getProject(slug: string): Promise<Project | null> {
       links,
       status,
       designedBy,
-      regularMedia[]{
-        _type,
-        _key,
-        _type == "image" => {
-          alt,
-          asset,
-          crop,
-          hotspot,
-          "dimensions": asset->metadata.dimensions
-        },
-        _type == "file" => {
-          "asset": asset->{
-            _id,
-            url,
-            originalFilename,
-            mimeType,
-            size
-          },
-          poster{
-            "asset": asset->,
-            alt
-          }
-        }
-      },
-      extendedMedia[]{
-        _type,
-        _key,
-        _type == "image" => {
-          alt,
-          asset,
-          crop,
-          hotspot,
-          "dimensions": asset->metadata.dimensions
-        },
-        _type == "file" => {
-          "asset": asset->{
-            _id,
-            url,
-            originalFilename,
-            mimeType,
-            size
-          },
-          poster{
-            "asset": asset->,
-            alt
-          }
-        }
-      }
+      regularMedia[]${mediaProjection},
+      extendedMedia[]${mediaProjection}
     }`,
     { slug }
   );
@@ -225,6 +120,7 @@ export async function getHomepage(): Promise<Homepage | null> {
       modules[]{
         _type,
         _key,
+        menuLink,
         ...,
         _type == "hero" => {
           image,
@@ -302,16 +198,6 @@ export async function getHomepage(): Promise<Homepage | null> {
       }
     }`
   );
-}
-
-export interface Post {
-  _type: "post";
-  _createdAt: string;
-  title?: string;
-  slug: Slug;
-  excerpt?: string;
-  mainImage?: ImageAsset & { alt?: string };
-  body: PortableTextBlock[];
 }
 
 export interface Homepage {
@@ -407,7 +293,6 @@ export interface FeaturedProjectModule {
 
 export interface CustomCredit {
   credit?: string;
-  // `text` is `textLinks` in Sanity (Portable Text array).
   text?: PortableTextBlock[];
 }
 

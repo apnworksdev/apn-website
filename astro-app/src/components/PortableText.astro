@@ -59,7 +59,8 @@ if (contentArray.length === 0) {
         }
         
         if (hasLink) {
-          return { type: "link", href: linkHref, text, isBold, isItalic, parts: strongFirstLetters ? getParts(text) : null };
+          const isExternal = /^https?:\/\//i.test(linkHref);
+          return { type: "link", href: linkHref, text, isBold, isItalic, isExternal, parts: strongFirstLetters ? getParts(text) : null };
         }
         
         return { type: "text", text, isBold, isItalic, parts: strongFirstLetters ? getParts(text) : null };
@@ -90,7 +91,16 @@ if (contentArray.length === 0) {
                   )}
                 </>
               );
-              return <a href={child.href}>{linkContent}</a>;
+              return (
+                <a
+                  href={child.href}
+                  {...(child.isExternal
+                    ? { target: "_blank", rel: "noopener noreferrer" }
+                    : {})}
+                >
+                  {linkContent}
+                </a>
+              );
             }
             // Determine class based on formatting
             const classes: string[] = [];
