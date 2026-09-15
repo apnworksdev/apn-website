@@ -26,38 +26,34 @@ const fallbackItems: NavItem[] = [
 const navItems = (items.length > 0 ? items : fallbackItems)
   .slice()
   .sort((a, b) => a.order - b.order);
-
-function wordClass(words: string[], index: number): string {
-  if (words.length === 1) return "";
-  if (index < words.length - 1) return "nav__line-no";
-  if (words.length === 2) return "nav__line-full";
-  return "";
-}
 ---
 
-<nav>
+<nav data-nav>
   <menu>
     {navItems.map((item, itemIndex) => {
       const words = item.label.trim().split(/\s+/).filter(Boolean);
       const num = String(itemIndex + 1).padStart(2, "0");
-      return words.map((word, wordIndex) => (
-        <button
-          type="button"
-          data-nav-button
-          data-target={item.id}
-          class={wordClass(words, wordIndex)}
-        >
-          {wordIndex === 0 && <span class="font-xs sans">{num}</span>}
-          <span class="font-s">{word}</span>
-        </button>
-      ));
+      return (
+        <>
+          <button type="button" data-nav-button data-target={item.id}>
+            <span class="nav__num font-xs sans">{num}</span>{" "}
+            {words.map((word, wordIndex) => (
+              <>
+                {wordIndex > 0 ? " " : null}
+                <span class="nav__word font-s">{word}</span>
+              </>
+            ))}
+          </button>{" "}
+        </>
+      );
     })}
 
     <button type="button" data-nav-button data-target="visuals">
-      <span class="font-xs sans">{String(navItems.length + 1).padStart(2, "0")}</span>
-      <span class="font-s">Visuals</span>
+      <span class="nav__num font-xs sans">{String(navItems.length + 1).padStart(2, "0")}</span>{" "}
+      <span class="nav__word font-s">Visuals</span>
     </button>
   </menu>
+  <div class="nav__underlines" data-nav-underlines aria-hidden="true"></div>
   <div class="book__indications">
     <div data-visuals-toggle><Book /><BookVisuals /></div>
     <div class="indications font-xs sans">
@@ -74,20 +70,67 @@ function wordClass(words: string[], index: number): string {
     abortController = new AbortController();
     const { signal } = abortController;
 
-    const navItems = document.querySelectorAll<HTMLElement>("[data-nav-item]");
-    const navButtons = document.querySelectorAll<HTMLButtonElement>("[data-nav-button]");
+    const navButtons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>("[data-nav-button]")
+    );
 
-    const setActiveTarget = (id: string) => {
-      if (navItems.length > 0) {
-        navItems.forEach((item) => item.classList.remove("active"));
-        const activeItem = Array.from(navItems).find((item) => item.dataset.target === id);
-        activeItem?.classList.add("active");
+    const navRoot = document.querySelector<HTMLElement>("[data-nav]");
+    const underlineLayer = document.querySelector<HTMLElement>("[data-nav-underlines]");
+
+    const syncActiveUnderline = () => {
+      if (!navRoot || !underlineLayer) return;
+
+      const activeButton = navButtons.find((btn) => btn.classList.contains("active"));
+      underlineLayer.replaceChildren();
+      if (!activeButton) return;
+
+      const parts = Array.from(
+        activeButton.querySelectorAll<HTMLElement>(".nav__num, .nav__word")
+      );
+      if (parts.length === 0) return;
+
+      const navRect = navRoot.getBoundingClientRect();
+
+      // Group parts that sit on the same visual line (wrapped labels get one bar per line)
+      const lines: HTMLElement[][] = [];
+      for (const part of parts) {
+        const top = Math.round(part.getBoundingClientRect().top);
+        const line = lines.find((group) => {
+          const groupTop = Math.round(group[0].getBoundingClientRect().top);
+          return Math.abs(groupTop - top) <= 4;
+        });
+        if (line) line.push(part);
+        else lines.push([part]);
       }
 
+      for (const line of lines) {
+        const rects = line.map((el) => el.getBoundingClientRect());
+        const left = Math.min(...rects.map((r) => r.left)) - navRect.left;
+        const right = Math.max(...rects.map((r) => r.right)) - navRect.left;
+        const bottom = Math.max(...rects.map((r) => r.bottom)) - navRect.top;
+
+        const bar = document.createElement("span");
+        bar.className = "nav__underline";
+        bar.style.left = `${left}px`;
+        bar.style.width = `${Math.max(0, right - left)}px`;
+        bar.style.top = `${bottom - 1}px`;
+        underlineLayer.appendChild(bar);
+      }
+
+      // Next frame so the bar can transition in after layout
+      requestAnimationFrame(() => {
+        underlineLayer.querySelectorAll(".nav__underline").forEach((el) => {
+          el.classList.add("is-on");
+        });
+      });
+    };
+
+    const setActiveTarget = (id: string) => {
       navButtons.forEach((btn) => btn.classList.remove("active"));
       navButtons.forEach((btn) => {
         if (btn.dataset.target === id) btn.classList.add("active");
       });
+      syncActiveUnderline();
     };
 
     let scheduleUpdate = () => {};
@@ -159,9 +202,9 @@ function wordClass(words: string[], index: number): string {
 
     const targetIds = Array.from(
       new Set(
-        Array.from(navButtons)
+        navButtons
           .map((b) => b.dataset.target)
-          .filter((t): t is string => Boolean(t))
+          .filter((t): t is string => Boolean(t) && t !== "visuals")
       )
     );
     const sections = Array.from(
@@ -170,33 +213,62 @@ function wordClass(words: string[], index: number): string {
 
     if (sections.length > 0) {
       let rafId = 0;
+      let lastActiveId: string | null = null;
+
+      const applyActive = (id: string) => {
+        if (id === lastActiveId) return;
+        lastActiveId = id;
+        setActiveTarget(id);
+      };
+
+      /**
+       * Activate by scrollY thresholds derived from section tops.
+       * Trailing sections are remapped into the reachable scroll range so
+       * short end modules (Services / Clients) still get a real active window
+       * even when their tops sit below the max marker position.
+       */
       const updateActiveFromScroll = () => {
         rafId = 0;
+
         if (document.documentElement.classList.contains("show-visuals")) {
-          setActiveTarget("visuals");
-          return;
-        }
-        const bottomThresholdPx = 2;
-        const atBottom =
-          window.scrollY + window.innerHeight >=
-          document.documentElement.scrollHeight - bottomThresholdPx;
-
-        if (atBottom) {
-          const lastId = sections[sections.length - 1]?.id ?? null;
-          if (lastId) setActiveTarget(lastId);
+          applyActive("visuals");
           return;
         }
 
-        const centerY = window.scrollY + window.innerHeight / 2;
+        const vh = window.innerHeight;
+        const docHeight = document.documentElement.scrollHeight;
+        const maxScroll = Math.max(0, docHeight - vh);
+        const scrollY = window.scrollY;
+        const markerRatio = 0.4;
+        const minGap = Math.min(120, Math.max(48, maxScroll / (sections.length * 2)));
 
-        let activeId: string | null = null;
-        sections.forEach((section) => {
-          const top = section.offsetTop;
-          if (top <= centerY) activeId = section.id;
-        });
+        const tops = sections.map(
+          (section) => section.getBoundingClientRect().top + scrollY
+        );
 
-        if (!activeId) activeId = sections[0]?.id ?? null;
-        if (activeId) setActiveTarget(activeId);
+        // Raw: scrollY when the section top hits the marker line
+        const thresholds = tops.map((top, i) =>
+          i === 0 ? 0 : top - vh * markerRatio
+        );
+
+        // Keep thresholds inside [0, maxScroll] and strictly increasing so
+        // every section (especially the last ones) is reachable before EOF.
+        // Leave (n - i) * minGap of scroll for this section and those after it.
+        thresholds[0] = 0;
+        for (let i = 1; i < thresholds.length; i++) {
+          const maxAllowed = Math.max(0, maxScroll - (thresholds.length - i) * minGap);
+          thresholds[i] = Math.min(
+            Math.max(thresholds[i], thresholds[i - 1] + minGap),
+            maxAllowed
+          );
+        }
+
+        let activeIndex = 0;
+        for (let i = 0; i < thresholds.length; i++) {
+          if (scrollY >= thresholds[i]) activeIndex = i;
+        }
+
+        applyActive(sections[activeIndex].id);
       };
 
       scheduleUpdate = () => {
@@ -205,7 +277,35 @@ function wordClass(words: string[], index: number): string {
       };
 
       window.addEventListener("scroll", scheduleUpdate, { passive: true, signal });
-      window.addEventListener("resize", scheduleUpdate, { signal });
+      window.addEventListener(
+        "resize",
+        () => {
+          lastActiveId = null;
+          syncActiveUnderline();
+          scheduleUpdate();
+        },
+        { signal }
+      );
+      window.addEventListener(
+        "load",
+        () => {
+          lastActiveId = null;
+          scheduleUpdate();
+        },
+        { signal }
+      );
+
+      // Keep spy correct as images/fonts change section tops
+      const layoutRoot = document.querySelector(".homepage__container");
+      if (layoutRoot && typeof ResizeObserver !== "undefined") {
+        const ro = new ResizeObserver(() => {
+          lastActiveId = null;
+          scheduleUpdate();
+        });
+        ro.observe(layoutRoot);
+        signal.addEventListener("abort", () => ro.disconnect());
+      }
+
       scheduleUpdate();
     }
   };

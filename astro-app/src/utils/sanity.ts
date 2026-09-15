@@ -82,8 +82,9 @@ export async function getFeaturedCarousel(): Promise<FeaturedCarousel | null> {
           _type,
           _key,
           _type == "image" => {
-            asset->,
-            alt
+            asset,
+            alt,
+            "dimensions": asset->metadata.dimensions
           },
           _type == "file" => {
             asset->{
@@ -332,6 +333,10 @@ export interface MediaItem {
   _key?: string;
   asset?: ImageAsset | FileAsset;
   alt?: string;
+  dimensions?: {
+    width?: number;
+    height?: number;
+  };
   poster?: {
     asset: ImageAsset;
     alt?: string;

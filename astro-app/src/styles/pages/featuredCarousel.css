@@ -50,6 +50,14 @@ html.show-visuals .featured-carousel__container {
   max-height: calc(100dvh - (var(--separator-large) * 2));
 }
 
+.featured-carousel__media,
+.featured-carousel__item__content video {
+  display: block;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
 .featured-carousel__item.active {
   opacity: 1;
 }

@@ -17,44 +17,38 @@ html.show-project-hover nav {
 }
 
 nav menu {
-  /* display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between; */
   text-align: justify;
 }
 
+/* Flatten so words join the justified menu flow, while staying one <button> */
 nav button {
-  position: relative;
+  display: contents;
 }
 
-nav button:not(.nav__line-no)::before {
-  content: '';
-  display: block;
-  width: calc(100% - 14px);
+nav .nav__num,
+nav .nav__word {
+  position: relative;
+  display: inline;
+}
+
+.nav__underlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.nav__underline {
+  position: absolute;
   height: 0.5px;
   background-color: var(--black);
-  position: absolute;
-  bottom: 1px;
-  right: 0;
-  transform: scaleX(0%);
+  transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.3s var(--transition-effect);
 }
 
-nav button.active::before {
-  transform: scaleX(100%);
-}
-
-nav button.nav__line-full::before {
-  width: 100%;
-}
-
-nav button.nav__line-works::before {
-  width: 119px;
-}
-
-nav button.nav__line-services::before {
-  width: 103px;
+.nav__underline.is-on {
+  transform: scaleX(1);
 }
 
 .book__indications {
@@ -93,11 +87,6 @@ html:not(.show-visuals) .book__container.book__container--text {
   --font-xs: 8px;
   text-align: justify;
 }
-
-
-
-
-
 
 .project-hover-preview {
   position: fixed;

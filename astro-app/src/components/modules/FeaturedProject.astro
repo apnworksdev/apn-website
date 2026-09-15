@@ -56,22 +56,18 @@ function formatTitleWithStrongLetters(title: string) {
         <div class="module--featured-project__media">
           {module.media.map((mediaItem) => {
             if (mediaItem._type === "image" && mediaItem.asset) {
-              // ImageAsset doesn't have a direct 'url' property, FileAsset does
-              const isImageAsset = !("url" in mediaItem.asset);
-              if (isImageAsset) {
-                return (
-                  <div class="module--featured-project__image">
-                    <SanityImage
-                      image={mediaItem.asset as ImageAsset}
-                      alt={mediaItem.alt || project.title || ""}
-                      width={2000}
-                      sizes="(max-width: 768px) 100vw, min(100vw, 2000px)"
-                      loading="lazy"
-                      class="module--featured-project__image-element media-element"
-                    />
-                  </div>
-                );
-              }
+              return (
+                <div class="module--featured-project__image">
+                  <SanityImage
+                    image={mediaItem.asset as ImageAsset}
+                    alt={mediaItem.alt || project.title || ""}
+                    width={2000}
+                    sizes="(max-width: 768px) 100vw, min(100vw, 2000px)"
+                    loading="lazy"
+                    class="module--featured-project__image-element media-element"
+                  />
+                </div>
+              );
             }
             if (mediaItem._type === "file" && mediaItem.asset && "url" in mediaItem.asset) {
               const fileAsset = mediaItem.asset as FileAsset;

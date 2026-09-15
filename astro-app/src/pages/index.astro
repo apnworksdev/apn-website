@@ -7,8 +7,8 @@ import "../styles/pages/featuredCarousel.css";
 import PortableText from "../components/PortableText.astro";
 import FirstLetterStrong from "../components/FirstLetterStrong.astro";
 import SanityImage from "../components/SanityImage.astro";
+import type { Image, ImageAsset } from "@sanity/types";
 import { urlFor } from "../utils/image";
-import type { ImageAsset } from "@sanity/types";
 
 const homepage = await getHomepage();
 const featuredCarousel = await getFeaturedCarousel();
@@ -83,11 +83,15 @@ const ogImage =
 
   <div class="homepage__container">
     {homepageModules.length > 0
-      ? homepageModules.map((module, index) => (
-          <section id={moduleSectionIds[index]} data-nav-section>
-            <ModuleRenderer module={module} />
-          </section>
-        ))
+      ? homepageModules.map((module, index) => {
+          const id = moduleSectionIds[index];
+          const isNavSection = Boolean(module.menuLink?.trim());
+          return (
+            <section id={id} data-nav-section={isNavSection ? "" : undefined}>
+              <ModuleRenderer module={module} />
+            </section>
+          );
+        })
       : null}
 
     {homepage?.credits && homepage.credits.length > 0 ? (
@@ -106,22 +110,22 @@ const ogImage =
       featuredCarousel.modules.length > 0 &&
       featuredCarousel.modules.map((item, index) => {
         const firstMedia = item.media?.[0];
-        const isImage = firstMedia?._type === "image" && firstMedia?.asset;
+        const isImage = firstMedia?._type === "image" && Boolean(firstMedia?.asset);
         const isFile =
           firstMedia?._type === "file" && firstMedia?.asset && "url" in firstMedia.asset;
         const href = item.project?.slug?.current
           ? `/project/${item.project.slug.current}`
           : undefined;
-        const assetForDimensions = isImage
-          ? (firstMedia?.asset as
-              | { metadata?: { dimensions?: { width?: number; height?: number } } }
-              | undefined)
-          : firstMedia?._type === "file" && firstMedia?.poster?.asset
-            ? (firstMedia.poster.asset as {
-                metadata?: { dimensions?: { width?: number; height?: number } };
-              })
-            : undefined;
-        const dims = assetForDimensions?.metadata?.dimensions;
+        const dims =
+          isImage && firstMedia && "dimensions" in firstMedia
+            ? (firstMedia as { dimensions?: { width?: number; height?: number } }).dimensions
+            : firstMedia?._type === "file" && firstMedia?.poster?.asset
+              ? (
+                  firstMedia.poster.asset as {
+                    metadata?: { dimensions?: { width?: number; height?: number } };
+                  }
+                ).metadata?.dimensions
+              : undefined;
         const w = dims?.width ?? 0;
         const h = dims?.height ?? 0;
         const mediaOrientation =
@@ -134,10 +138,10 @@ const ogImage =
             data-media-orientation={mediaOrientation}
           >
             <div class="featured-carousel__item__content">
-              {isImage && firstMedia.asset && !("url" in firstMedia.asset) && (
+              {isImage && firstMedia?.asset && (
                 <SanityImage
                   class="featured-carousel__media"
-                  image={firstMedia.asset as ImageAsset}
+                  image={firstMedia as unknown as Image}
                   alt={firstMedia.alt ?? item.project?.title ?? ""}
                   width={1600}
                   sizes="(max-width: 768px) 100vw, min(90vw, 1600px)"
@@ -145,7 +149,7 @@ const ogImage =
                   fetchpriority={index === 0 ? "high" : "auto"}
                 />
               )}
-              {isFile && firstMedia.asset && "url" in firstMedia.asset && (
+              {isFile && firstMedia?.asset && "url" in firstMedia.asset && (
                 <video
                   src={firstMedia.asset.url}
                   poster={
