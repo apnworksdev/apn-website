@@ -1,0 +1,86 @@
+---
+import type { ImageAsset } from "@sanity/types";
+import type { Homepage } from "../utils/sanity";
+import ModuleRenderer from "./ModuleRenderer.astro";
+import PortableText from "./PortableText.astro";
+import { urlFor } from "../utils/image";
+
+interface Props {
+  homepage: Homepage;
+}
+
+const { homepage } = Astro.props;
+const homepageModules = homepage.modules ?? [];
+const homepageStamps = homepage.stamps ?? [];
+
+const slugifyForId = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/['"]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const moduleSectionIds = homepageModules.map((module, index) => {
+  const fromMenuLink = module.menuLink ? slugifyForId(module.menuLink) : "";
+  return (
+    fromMenuLink ||
+    `module-${index + 1}-${module._key.replace(/[^a-zA-Z0-9_-]/g, "")}`
+  );
+});
+
+let navOrder = 0;
+const moduleSectionNumbers = homepageModules.map((module) => {
+  if (!module.menuLink?.trim()) return null;
+  navOrder += 1;
+  return navOrder;
+});
+---
+
+<div data-home-layer>
+  {homepageStamps.length > 0 ? (
+    <div class="homepage__stamps" aria-hidden="true">
+      {homepageStamps.map((stamp) => {
+        if (!stamp.image?.asset) return null;
+        const side = stamp.side === "right" ? "right" : "left";
+        const top = Number.isFinite(stamp.top) ? stamp.top : 0;
+        const sideOffset = Number.isFinite(stamp.sideOffset) ? stamp.sideOffset : 0;
+        const style = `top:${top}%;${side}:${sideOffset}%;`;
+
+        return (
+          <img
+            class="homepage__stamp"
+            src={urlFor(stamp.image.asset as ImageAsset).width(320).url()}
+            alt=""
+            style={style}
+            loading="lazy"
+            decoding="async"
+          />
+        );
+      })}
+    </div>
+  ) : null}
+
+  <div class="homepage__container">
+    {homepageModules.map((module, index) => {
+      const id = moduleSectionIds[index];
+      const isNavSection = Boolean(module.menuLink?.trim());
+      return (
+        <section id={id} class="homepage__section" data-nav-section={isNavSection ? "" : undefined}>
+          {module._type === "tableOfWorks" && moduleSectionNumbers[index] != null ? (
+            <p class="homepage__section-number font-xs sans">
+              {String(moduleSectionNumbers[index]).padStart(2, "0")}
+            </p>
+          ) : null}
+          <ModuleRenderer module={module} sectionNumber={moduleSectionNumbers[index]} />
+        </section>
+      );
+    })}
+
+    {homepage.credits && homepage.credits.length > 0 ? (
+      <div class="homepage__credits">
+        <PortableText class="font-s" content={homepage.credits} />
+      </div>
+    ) : null}
+  </div>
+</div>

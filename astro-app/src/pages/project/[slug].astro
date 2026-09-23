@@ -2,12 +2,15 @@
 import type { InferGetStaticParamsType } from "astro";
 import Layout from "../../layouts/Layout.astro";
 import '../../styles/pages/project.css';
+import '../../styles/pages/caseStudy.css';
 import { getProject, getProjectSlugs } from "../../utils/sanity";
 import { urlFor } from "../../utils/image";
 import type { ImageAsset } from "@sanity/types";
 import type { FileAsset } from "../../utils/sanity";
 import SanityImage from "../../components/SanityImage.astro";
 import PortableText from "../../components/PortableText.astro";
+import CaseStudyModuleRenderer from "../../components/project/CaseStudyModuleRenderer.astro";
+import ProjectCredits from "../../components/project/ProjectCredits.astro";
 
 export async function getStaticPaths() {
   const slugs = await getProjectSlugs();
@@ -18,13 +21,39 @@ type Params = InferGetStaticParamsType<typeof getStaticPaths>;
 const { slug } = Astro.params as Params;
 
 const project = await getProject(slug);
-const gallery =
-  project?.projectType === "extended"
-    ? project?.extendedMedia
-    : project?.regularMedia;
+const isCaseStudy = project?.layout === "caseStudy";
+const gallery = project?.media;
+const caseStudyModules = project?.modules ?? [];
+const navDescription = project?.description?.trim() || project?.excerpt?.trim() || undefined;
 ---
 
-<Layout title={project?.title ?? "Project"} description={project?.excerpt ?? project?.description}>
+<Layout
+  title={project?.title ?? "Project"}
+  description={project?.excerpt ?? project?.description}
+  navDescription={navDescription}
+  navVariant="project"
+>
+  {isCaseStudy ? (
+      <section class="case-study">
+        <div class="case-study__container">
+          {project?.title && (
+            <h1 class="case-study__title font-s small-caps">{project.title}</h1>
+          )}
+          <div class="case-study__layout">
+            <div class="case-study__modules">
+              {caseStudyModules.map((module) => (
+                <CaseStudyModuleRenderer module={module} project={project!} />
+              ))}
+            </div>
+            {project && (
+              <aside class="case-study__credits">
+                <ProjectCredits project={project} />
+              </aside>
+            )}
+          </div>
+        </div>
+      </section>
+  ) : (
   <section class="project">
     <div class="project__container">
       {project?.title && (
@@ -181,6 +210,7 @@ const gallery =
 
     </div>
   </section>
+  )}
 </Layout>
 
 <script>
@@ -591,5 +621,12 @@ const gallery =
 
   document.addEventListener("astro:page-load", bootProjectPage);
   bootProjectPage();
+</script>
+
+<script>
+  import { initCaseStudyLayout } from "../../scripts/caseStudyLayout";
+
+  document.addEventListener("astro:page-load", initCaseStudyLayout);
+  initCaseStudyLayout();
 </script>
 

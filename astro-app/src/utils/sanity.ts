@@ -35,12 +35,43 @@ export async function getProjectSlugs(): Promise<string[]> {
   return slugs.filter((s): s is string => Boolean(s));
 }
 
+const caseStudyModulesProjection = `modules[]{
+  _key,
+  _type,
+  _type == "caseStudyContentBlock" => {
+    items[]{
+      _key,
+      _type,
+      _type == "caseStudyText" => {
+        text
+      },
+      _type == "caseStudyMedia" => {
+        fit,
+        caption,
+        media[]${mediaProjection}
+      },
+      _type == "caseStudyTextMedia" => {
+        mediaPosition,
+        text,
+        media[]${mediaProjection}
+      },
+      _type == "caseStudyMediaGrid" => {
+        columns,
+        media[]${mediaProjection}
+      }
+    }
+  },
+  _type == "caseStudySeparator" => {
+    media[]${mediaProjection}
+  }
+}`;
+
 export async function getProject(slug: string): Promise<Project | null> {
   return await sanityClient.fetch(
     groq`*[_type == "project" && slug.current == $slug][0]{
       _id,
       title,
-      projectType,
+      layout,
       slug,
       thumbnail,
       excerpt,
@@ -59,8 +90,8 @@ export async function getProject(slug: string): Promise<Project | null> {
       links,
       status,
       designedBy,
-      regularMedia[]${mediaProjection},
-      extendedMedia[]${mediaProjection}
+      "media": coalesce(regularMedia, extendedMedia)[]${mediaProjection},
+      ${caseStudyModulesProjection}
     }`,
     { slug }
   );
@@ -297,10 +328,61 @@ export interface CustomCredit {
   text?: PortableTextBlock[];
 }
 
+export type CaseStudyMediaFit = "inner" | "outer";
+
+export interface CaseStudyTextItem {
+  _key: string;
+  _type: "caseStudyText";
+  text?: PortableTextBlock[];
+}
+
+export interface CaseStudyMediaItem {
+  _key: string;
+  _type: "caseStudyMedia";
+  fit?: CaseStudyMediaFit;
+  caption?: string;
+  media?: MediaItem[];
+}
+
+export interface CaseStudyTextMediaItem {
+  _key: string;
+  _type: "caseStudyTextMedia";
+  mediaPosition?: "left" | "right";
+  text?: PortableTextBlock[];
+  media?: MediaItem[];
+}
+
+export interface CaseStudyMediaGridItem {
+  _key: string;
+  _type: "caseStudyMediaGrid";
+  columns?: 2 | 3 | 4;
+  media?: MediaItem[];
+}
+
+export type CaseStudyBlockItem =
+  | CaseStudyTextItem
+  | CaseStudyMediaItem
+  | CaseStudyTextMediaItem
+  | CaseStudyMediaGridItem;
+
+export interface CaseStudyContentBlock {
+  _key: string;
+  _type: "caseStudyContentBlock";
+  items?: CaseStudyBlockItem[];
+}
+
+export interface CaseStudySeparator {
+  _key: string;
+  _type: "caseStudySeparator";
+  media?: MediaItem[];
+}
+
+export type CaseStudyModule = CaseStudyContentBlock | CaseStudySeparator;
+
 export interface Project {
   _id: string;
   title?: string;
-  projectType?: "regular" | "extended";
+  layout?: "standard" | "caseStudy";
   slug?: Slug;
   thumbnail?: MediaItem[];
   excerpt?: string;
@@ -316,8 +398,8 @@ export interface Project {
   techStack?: string;
   customCredits?: CustomCredit[];
   links?: PortableTextBlock[];
-  regularMedia?: MediaItem[];
-  extendedMedia?: MediaItem[];
+  media?: MediaItem[];
+  modules?: CaseStudyModule[];
 }
 
 export interface FileAsset {

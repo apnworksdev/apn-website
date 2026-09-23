@@ -9,6 +9,12 @@ import textModule from './modules/text'
 import contactModule from './modules/contact'
 import dataBox from './modules/dataBox'
 import featuredProject from './modules/featuredProject'
+import caseStudyText from './modules/caseStudyText'
+import caseStudyMedia from './modules/caseStudyMedia'
+import caseStudyTextMedia from './modules/caseStudyTextMedia'
+import caseStudyContentBlock from './modules/caseStudyContentBlock'
+import caseStudySeparator from './modules/caseStudySeparator'
+import caseStudyMediaGrid from './modules/caseStudyMediaGrid'
 
 import blockContent from './objects/blockContent'
 import mediaArray from './objects/mediaArray'
@@ -32,6 +38,12 @@ export const schemaTypes = [
   contactModule,
   dataBox,
   featuredProject,
+  caseStudyText,
+  caseStudyMedia,
+  caseStudyTextMedia,
+  caseStudyContentBlock,
+  caseStudySeparator,
+  caseStudyMediaGrid,
 
   // Objects
   blockContent,

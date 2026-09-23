@@ -42,11 +42,11 @@ html.show-visuals .featured-carousel__container {
 
 [data-rotation="rotate"] .featured-carousel__media {
   max-width: calc(100dvh - (var(--separator-large) * 2));
-  max-height: calc((var(--dynamic-column) * 16) + (var(--gap) * 15));
+  max-height: calc(var(--column) * 16 + var(--gap) * 15);
 }
 
 [data-rotation="default"] .featured-carousel__media {
-  max-width: calc((var(--dynamic-column) * 16) + (var(--gap) * 15));
+  max-width: calc(var(--column) * 16 + var(--gap) * 15);
   max-height: calc(100dvh - (var(--separator-large) * 2));
 }
 

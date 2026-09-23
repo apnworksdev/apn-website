@@ -136,3 +136,8 @@
   margin-top: var(--separator-large);
   line-height: normal;
 }
+
+.project__links a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

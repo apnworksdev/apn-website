@@ -3,7 +3,7 @@ nav {
   bottom: 0;
   right: 0;
   z-index: 200;
-  width: calc((var(--column) * 3) + (var(--gap) * 3));
+  width: calc(var(--column) * 3 + var(--gap) * 3);
   margin: var(--gap);
   display: flex;
   flex-direction: column;
@@ -16,8 +16,21 @@ html.show-project-hover nav {
   transform: translateY(3px);
 }
 
-nav menu {
+nav menu,
+.nav__description {
   text-align: justify;
+}
+
+.nav__description {
+  white-space: pre-line;
+}
+
+.nav__back {
+  cursor: pointer;
+  display: flex;
+  padding: 0;
+  background: none;
+  border: none;
 }
 
 /* Flatten so words join the justified menu flow, while staying one <button> */
@@ -63,6 +76,32 @@ nav .nav__word {
   cursor: pointer;
 }
 
+.nav__visuals-book {
+  display: flex;
+}
+
+.nav__visuals-mobile {
+  display: none;
+  padding: 6px 0;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+}
+
+.nav__visuals-close {
+  display: none;
+}
+
+html.show-visuals .nav__visuals-open {
+  display: none;
+}
+
+html.show-visuals .nav__visuals-close {
+  display: inline;
+}
+
 .book__container svg {
   width: 24px;
   height: auto;
@@ -93,10 +132,11 @@ html:not(.show-visuals) .book__container.book__container--text {
   bottom: 0;
   right: 0;
   z-index: 200;
-  width: calc((var(--column) * 3) + (var(--gap) * 3));
+  width: calc(var(--column) * 3 + var(--gap) * 3);
   margin: var(--gap);
   opacity: 0;
   transform: translateY(3px);
+  pointer-events: none;
   transition: opacity 0.5s var(--transition-effect), transform 0.5s var(--transition-effect);
 }
 
@@ -117,4 +157,28 @@ html.show-project-hover .project-hover-preview {
 
 .project-hover-preview__text {
   text-align: justify;
+}
+
+@media only screen and (max-width: 820px) {
+  nav menu,
+  .nav__underlines,
+  .project-hover-preview,
+  .indications,
+  .nav__visuals-book {
+    display: none;
+  }
+
+  nav {
+    width: auto;
+    max-width: calc(100vw - var(--gap) * 2);
+  }
+
+  .book__indications {
+    border-top: none;
+    padding: 0;
+  }
+
+  .nav__visuals-mobile {
+    display: block;
+  }
 }

@@ -2,17 +2,22 @@
 // https://docs.astro.build/en/guides/view-transitions/
 import { ClientRouter } from "astro:transitions";
 import Nav from "../components/global/Nav.astro";
+import HomeLayer from "../components/HomeLayer.astro";
+import { getHomepage } from "../utils/sanity";
 import "../styles/global/fonts.css";
 import "../styles/global/variables.css";
 import "../styles/global/global.css";
 import "../styles/global/main.css";
 import "../styles/global/nav.css";
+import "../styles/pages/homepage.css";
 
 interface Props {
   title: string;
   description?: string;
   ogImage?: string;
   navItems?: { id: string; label: string; order: number }[];
+  navDescription?: string;
+  navVariant?: "index" | "project";
 }
 
 const {
@@ -20,7 +25,12 @@ const {
   description = "APN — Design & Development studio",
   ogImage,
   navItems = [],
+  navDescription,
+  navVariant = "index",
 } = Astro.props;
+
+const isProjectPage = navVariant === "project";
+const homepage = isProjectPage ? await getHomepage() : null;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
 const absoluteOgImage = ogImage
@@ -31,7 +41,11 @@ const absoluteOgImage = ogImage
 ---
 
 <!DOCTYPE html>
-<html lang="en">
+<html
+  lang="en"
+  class:list={[isProjectPage && "is-project-page", isProjectPage && "has-home-backdrop"]}
+  transition:animate="none"
+>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
@@ -63,11 +77,25 @@ const absoluteOgImage = ogImage
       crossorigin
     />
     <title>{title}</title>
+    <style>
+      html:not(.page-ready) .container {
+        opacity: 0;
+      }
+    </style>
     <ClientRouter />
   </head>
   <body>
+    <div
+      class="home-backdrop"
+      data-home-backdrop
+      transition:persist="home-backdrop"
+      aria-hidden={isProjectPage ? "true" : undefined}
+      inert={isProjectPage}
+    >
+      {homepage ? <HomeLayer homepage={homepage} /> : null}
+    </div>
     <div class="container">
-      <Nav items={navItems} />
+      <Nav items={navItems} description={navDescription} variant={navVariant} />
       <aside class="project-hover-preview" data-project-hover-preview hidden>
         <div class="project-hover-preview__inner">
           <img class="project-hover-preview__image" alt="" hidden />
@@ -177,6 +205,235 @@ const absoluteOgImage = ogImage
       };
 
       document.addEventListener("astro:page-load", bootHoverPreview);
+    </script>
+    <script>
+      const HOME_SCROLL_KEY = "apn:home-scroll";
+      const REVEAL_TIMEOUT_MS = 700;
+      const FADE_MS = 500;
+
+      type PrepEvent = Event & {
+        from?: URL;
+        to?: URL | string;
+        loader: () => Promise<void>;
+      };
+
+      type SwapEvent = Event & {
+        from?: URL;
+        to?: URL | string;
+        newDocument?: Document;
+      };
+
+      function isHomePath(pathname: string) {
+        return pathname === "/" || pathname === "";
+      }
+
+      function isProjectPath(pathname: string) {
+        return pathname.startsWith("/project/");
+      }
+
+      function toUrl(value: URL | string | undefined) {
+        if (!value) return null;
+        try {
+          return value instanceof URL ? value : new URL(value, location.origin);
+        } catch {
+          return null;
+        }
+      }
+
+      function prefersReducedMotion() {
+        return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      }
+
+      function waitForFade() {
+        if (prefersReducedMotion()) return Promise.resolve();
+        return new Promise<void>((resolve) => {
+          window.setTimeout(resolve, FADE_MS);
+        });
+      }
+
+      function pauseLayerVideos(root: ParentNode | null) {
+        if (!root) return;
+        for (const video of root.querySelectorAll("video")) {
+          video.pause();
+          video.removeAttribute("autoplay");
+        }
+      }
+
+      let savedScroll = 0;
+      let arrivingHomeFromProject = false;
+
+      const parkHomepage = (scrollY: number) => {
+        const backdrop = document.querySelector<HTMLElement>("[data-home-backdrop]");
+        const layer = document.querySelector<HTMLElement>("[data-home-layer]");
+        if (!backdrop || !layer || backdrop.contains(layer)) return false;
+
+        document.documentElement.classList.remove("show-visuals", "show-project-hover");
+        backdrop.replaceChildren(layer);
+        layer.style.transform = `translateY(-${Math.max(0, Math.round(scrollY))}px)`;
+        pauseLayerVideos(layer);
+        document.documentElement.classList.add("has-home-backdrop");
+        backdrop.setAttribute("aria-hidden", "true");
+        backdrop.setAttribute("inert", "");
+        return true;
+      };
+
+      const restoreHomepage = () => {
+        const backdrop = document.querySelector<HTMLElement>("[data-home-backdrop]");
+        const parked = backdrop?.querySelector<HTMLElement>("[data-home-layer]");
+        const main = document.querySelector("main");
+        const fresh = main?.querySelector<HTMLElement>("[data-home-layer]");
+        if (parked) parked.style.transform = "";
+        if (parked && main) {
+          if (fresh && fresh !== parked) fresh.replaceWith(parked);
+          else if (!fresh) main.prepend(parked);
+        }
+        backdrop?.replaceChildren();
+        backdrop?.removeAttribute("aria-hidden");
+        backdrop?.removeAttribute("inert");
+        document.documentElement.classList.remove(
+          "has-home-backdrop",
+          "is-project-page",
+          "page-leaving",
+          "home-returning",
+          "home-departing",
+          "page-swap",
+        );
+      };
+
+      function waitForPagePaint(): Promise<void> {
+        if (prefersReducedMotion()) return Promise.resolve();
+        const main = document.querySelector("main");
+        const vh = window.innerHeight || 800;
+        const pending = main
+          ? Array.from(main.querySelectorAll("img")).filter((img) => {
+              if (img.complete) return false;
+              return img.getBoundingClientRect().top < vh * 1.25;
+            })
+          : [];
+        const images = Promise.all(
+          pending.map(
+            (img) =>
+              new Promise<void>((resolve) => {
+                img.addEventListener("load", () => resolve(), { once: true });
+                img.addEventListener("error", () => resolve(), { once: true });
+              }),
+          ),
+        );
+        const fonts = document.fonts?.ready ?? Promise.resolve();
+        const layout = new Promise<void>((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        });
+        const cap = new Promise<void>((resolve) => {
+          window.setTimeout(resolve, REVEAL_TIMEOUT_MS);
+        });
+        return Promise.race([Promise.all([fonts, images, layout]), cap]).then(() => undefined);
+      }
+
+      async function revealPage() {
+        const html = document.documentElement;
+        if (html.classList.contains("page-leaving")) return;
+
+        if (isProjectPath(location.pathname)) {
+          html.classList.add("is-project-page", "has-home-backdrop");
+          pauseLayerVideos(document.querySelector("[data-home-backdrop]"));
+        }
+
+        if (html.classList.contains("page-ready")) return;
+        await waitForPagePaint();
+        if (html.classList.contains("page-leaving")) return;
+        html.classList.add("page-ready");
+      }
+
+      document.addEventListener("astro:before-preparation", (event) => {
+        const prep = event as PrepEvent;
+        const from = toUrl(prep.from) ?? new URL(location.href);
+        const to = toUrl(prep.to);
+        arrivingHomeFromProject = false;
+
+        if (isHomePath(from.pathname) && to && isProjectPath(to.pathname)) {
+          savedScroll = window.scrollY;
+          try {
+            sessionStorage.setItem(HOME_SCROLL_KEY, String(savedScroll));
+          } catch {
+            /* private mode */
+          }
+        }
+
+        const leavingProject = isProjectPath(from.pathname);
+        const leavingHomeForProject =
+          isHomePath(from.pathname) && Boolean(to && isProjectPath(to.pathname));
+        if ((!leavingProject && !leavingHomeForProject) || typeof prep.loader !== "function") {
+          return;
+        }
+
+        const goingHome = Boolean(to && isHomePath(to.pathname));
+        arrivingHomeFromProject = leavingProject && goingHome;
+        const originalLoader = prep.loader;
+        prep.loader = async () => {
+          const html = document.documentElement;
+          if (leavingHomeForProject) {
+            html.classList.add("home-departing");
+          } else {
+            html.classList.add("page-leaving");
+            if (goingHome) html.classList.add("home-returning");
+          }
+          const loading = originalLoader();
+          await Promise.all([waitForFade(), loading]);
+        };
+      });
+
+      document.addEventListener("astro:before-swap", (event) => {
+        const swap = event as SwapEvent;
+        const from = toUrl(swap.from) ?? new URL(location.href);
+        const to = toUrl(swap.to);
+        const goingToProject = Boolean(to && isProjectPath(to.pathname));
+        if (goingToProject && isHomePath(from.pathname)) {
+          document.documentElement.classList.add("page-swap");
+          parkHomepage(savedScroll || window.scrollY);
+        }
+
+        const nextHtml = swap.newDocument?.documentElement;
+        if (!nextHtml) return;
+        nextHtml.classList.remove("page-leaving", "home-returning", "home-departing", "page-swap");
+        if (arrivingHomeFromProject) {
+          nextHtml.classList.add("page-ready");
+          nextHtml.classList.remove("is-project-page", "has-home-backdrop");
+        } else {
+          nextHtml.classList.remove("page-ready");
+        }
+      });
+
+      document.addEventListener("astro:after-swap", () => {
+        const html = document.documentElement;
+        html.classList.remove("page-leaving", "home-returning", "home-departing", "page-swap");
+
+        if (isHomePath(location.pathname)) {
+          restoreHomepage();
+          const stored = Number(sessionStorage.getItem(HOME_SCROLL_KEY));
+          const y = savedScroll || (Number.isFinite(stored) ? stored : 0);
+          window.scrollTo(0, y);
+          html.classList.add("page-ready");
+          arrivingHomeFromProject = false;
+          return;
+        }
+
+        arrivingHomeFromProject = false;
+        if (isProjectPath(location.pathname)) {
+          const backdrop = document.querySelector<HTMLElement>("[data-home-backdrop]");
+          if (backdrop?.querySelector("[data-home-layer]")) {
+            html.classList.add("is-project-page", "has-home-backdrop");
+            html.classList.remove("page-ready");
+            backdrop.setAttribute("aria-hidden", "true");
+            backdrop.setAttribute("inert", "");
+            pauseLayerVideos(backdrop);
+            window.scrollTo(0, 0);
+          }
+        }
+      });
+
+      document.addEventListener("astro:page-load", () => {
+        void revealPage();
+      });
     </script>
   </body>
 </html>

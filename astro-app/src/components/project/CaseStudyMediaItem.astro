@@ -1,0 +1,55 @@
+---
+import type { ImageAsset } from "@sanity/types";
+import type { FileAsset, MediaItem } from "../../utils/sanity";
+import { urlFor } from "../../utils/image";
+import SanityImage from "../SanityImage.astro";
+
+interface Props {
+  mediaItem: MediaItem;
+  altFallback?: string;
+  class?: string;
+  sizes?: string;
+  width?: number;
+}
+
+const {
+  mediaItem,
+  altFallback = "",
+  class: className,
+  sizes = "100vw",
+  width = 1600,
+} = Astro.props;
+---
+
+{mediaItem._type === "image" && mediaItem.asset && (
+  <SanityImage
+    image={mediaItem as any}
+    alt={mediaItem.alt || altFallback}
+    width={width}
+    sizes={sizes}
+    loading="lazy"
+    class:list={["case-study__media-element", className]}
+  />
+)}
+{mediaItem._type === "file" && mediaItem.asset && "url" in mediaItem.asset && (
+  (() => {
+    const fileAsset = mediaItem.asset as FileAsset;
+    let posterUrl: string | undefined;
+    if (mediaItem.poster?.asset) {
+      posterUrl = urlFor(mediaItem.poster.asset as ImageAsset).width(2400).url();
+    }
+    return (
+      <video
+        autoplay
+        loop
+        preload="metadata"
+        muted
+        playsinline
+        poster={posterUrl}
+        class:list={["case-study__media-element", className]}
+      >
+        <source src={fileAsset.url} type={fileAsset.mimeType || "video/mp4"} />
+      </video>
+    );
+  })()
+)}

@@ -1,4 +1,9 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
+import caseStudyContentBlock from '../modules/caseStudyContentBlock'
+import caseStudySeparator from '../modules/caseStudySeparator'
+
+const isCaseStudyLayout = ({document}: {document?: {layout?: string}}) =>
+  document?.layout === 'caseStudy'
 
 export default defineType({
   name: 'project',
@@ -75,6 +80,21 @@ export default defineType({
       rows: 2,
       group: 'main',
     }),
+    defineField({
+      name: 'layout',
+      title: 'Page layout',
+      type: 'string',
+      group: 'main',
+      initialValue: 'standard',
+      options: {
+        layout: 'radio',
+        list: [
+          {title: 'Standard', value: 'standard'},
+          {title: 'Case study', value: 'caseStudy'},
+        ],
+      },
+      validation: (Rule) => Rule.required(),
+    }),
 
     // Data
     defineField({
@@ -150,40 +170,33 @@ export default defineType({
     }),
     defineField({
       name: 'links',
-      title: 'Links',
+      title: 'Website link',
+      description:
+        'Shown under credits. Write e.g. “Visit the website bettergiftshop.com” and link the URL text.',
       type: 'textLinks',
-      group: 'data'
+      group: 'data',
     }),
 
     // Content
-    defineField({
-      name: 'projectType',
-      title: 'Project Type',
-      type: 'string',
-      group: 'content',
-      initialValue: 'regular',
-      options: {
-        layout: 'radio',
-        list: [
-          {title: 'Regular', value: 'regular'},
-          {title: 'Extended', value: 'extended'},
-        ],
-      },
-      validation: (Rule) => Rule.required(),
-    }),
     defineField({
       name: 'regularMedia',
       title: 'Media',
       type: 'mediaArray',
       group: 'content',
-      hidden: ({document}) => document?.projectType !== 'regular',
+      hidden: isCaseStudyLayout,
     }),
     defineField({
-      name: 'extendedMedia',
-      title: 'Extended Media',
-      type: 'mediaArray',
+      name: 'modules',
+      title: 'Modules',
+      description:
+        'Add in reading order. Content blocks fill two columns; separators are a full-width row of 1–4 media.',
+      type: 'array',
       group: 'content',
-      hidden: ({document}) => document?.projectType !== 'extended',
+      hidden: ({document}) => document?.layout !== 'caseStudy',
+      of: [
+        defineArrayMember({type: caseStudyContentBlock.name}),
+        defineArrayMember({type: caseStudySeparator.name}),
+      ],
     }),
   ],
   preview: {

@@ -1,7 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { getHomepage, getFeaturedCarousel } from "../utils/sanity";
-import ModuleRenderer from "../components/ModuleRenderer.astro";
+import HomeLayer from "../components/HomeLayer.astro";
 import "../styles/pages/homepage.css";
 import "../styles/pages/featuredCarousel.css";
 import PortableText from "../components/PortableText.astro";
@@ -13,7 +13,6 @@ import { urlFor } from "../utils/image";
 const homepage = await getHomepage();
 const featuredCarousel = await getFeaturedCarousel();
 const homepageModules = homepage?.modules ?? [];
-const homepageStamps = homepage?.stamps ?? [];
 const slugifyForId = (value: string) =>
   value
     .trim()
@@ -58,48 +57,7 @@ const ogImage =
   ogImage={ogImage}
   navItems={orderedNavItems}
 >
-  {homepageStamps.length > 0 ? (
-    <div class="homepage__stamps" aria-hidden="true">
-      {homepageStamps.map((stamp) => {
-        if (!stamp.image?.asset) return null;
-        const side = stamp.side === "right" ? "right" : "left";
-        const top = Number.isFinite(stamp.top) ? stamp.top : 0;
-        const sideOffset = Number.isFinite(stamp.sideOffset) ? stamp.sideOffset : 0;
-        const style = `top:${top}%;${side}:${sideOffset}%;`;
-
-        return (
-          <img
-            class="homepage__stamp"
-            src={urlFor(stamp.image.asset as ImageAsset).width(320).url()}
-            alt=""
-            style={style}
-            loading="lazy"
-            decoding="async"
-          />
-        );
-      })}
-    </div>
-  ) : null}
-
-  <div class="homepage__container">
-    {homepageModules.length > 0
-      ? homepageModules.map((module, index) => {
-          const id = moduleSectionIds[index];
-          const isNavSection = Boolean(module.menuLink?.trim());
-          return (
-            <section id={id} data-nav-section={isNavSection ? "" : undefined}>
-              <ModuleRenderer module={module} />
-            </section>
-          );
-        })
-      : null}
-
-    {homepage?.credits && homepage.credits.length > 0 ? (
-      <div class="homepage__credits">
-        <PortableText class="font-s" content={homepage.credits} />
-      </div>
-    ) : null}
-  </div>
+  {homepage ? <HomeLayer homepage={homepage} /> : null}
 
   <div
     class="featured-carousel__container"
@@ -218,7 +176,15 @@ const ogImage =
       container.addEventListener(
         "click",
         (e) => {
-          if ((e.target as Element).closest("a")) return;
+          const target = e.target as Element | null;
+          if (!target || target.closest("a")) return;
+          if (!target.closest(".featured-carousel__item__content")) {
+            if (document.documentElement.classList.contains("show-visuals")) {
+              document.documentElement.classList.remove("show-visuals");
+              window.dispatchEvent(new Event("resize"));
+            }
+            return;
+          }
           const currentIndex = getCurrentIndex();
           const nextIndex = (currentIndex + 1) % count;
           setActiveIndex(nextIndex);

@@ -78,31 +78,28 @@ function previewImageUrl(project: Project): string {
 
 <section class="table-of-works" data-table-of-works>
   <div class="table-of-works__header">
-    <div class="table-of-works__header-item table-of-works__sort-alpha font-m">
+    <div class="table-of-works__sort font-m">
       <button
         type="button"
-        class="table-of-works__sort-alpha-button is-active"
+        class="table-of-works__sort-button is-active"
         data-sort="alpha"
         aria-pressed="true"
       >
         abc
       </button>
-    </div>
-
-    <h2 class="table-of-works__title small-caps font-m">
-      <strong>T</strong>able of <strong>W</strong>orks
-    </h2>
-
-    <div class="table-of-works__header-item table-of-works__sort-year font-m">
       <button
         type="button"
-        class="table-of-works__sort-year-button"
+        class="table-of-works__sort-button"
         data-sort="year"
         aria-pressed="false"
       >
         123
       </button>
     </div>
+
+    <h2 class="table-of-works__title small-caps font-m">
+      <strong>T</strong>able of <strong>W</strong>orks
+    </h2>
   </div>
 
   {alphaGroups && (

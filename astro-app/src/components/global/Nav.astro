@@ -10,9 +10,11 @@ interface NavItem {
 
 interface Props {
   items?: NavItem[];
+  description?: string;
+  variant?: "index" | "project";
 }
 
-const { items = [] } = Astro.props;
+const { items = [], description, variant = "index" } = Astro.props;
 
 const fallbackItems: NavItem[] = [
   { id: "about-apn", label: "About APN", order: 1 },
@@ -23,42 +25,78 @@ const fallbackItems: NavItem[] = [
   { id: "clients-collaborators", label: "Clients & Collaborators", order: 6 },
 ];
 
+const isProjectNav = variant === "project";
 const navItems = (items.length > 0 ? items : fallbackItems)
   .slice()
   .sort((a, b) => a.order - b.order);
 ---
 
-<nav data-nav>
-  <menu>
-    {navItems.map((item, itemIndex) => {
-      const words = item.label.trim().split(/\s+/).filter(Boolean);
-      const num = String(itemIndex + 1).padStart(2, "0");
-      return (
-        <>
-          <button type="button" data-nav-button data-target={item.id}>
-            <span class="nav__num font-xs sans">{num}</span>{" "}
-            {words.map((word, wordIndex) => (
-              <>
-                {wordIndex > 0 ? " " : null}
-                <span class="nav__word font-s">{word}</span>
-              </>
-            ))}
-          </button>{" "}
-        </>
-      );
-    })}
+<nav data-nav={isProjectNav ? "project" : "index"}>
+  {isProjectNav ? (
+    description?.trim() ? (
+      <p class="nav__description font-s">{description}</p>
+    ) : null
+  ) : (
+    <>
+      <menu>
+        {navItems.map((item, itemIndex) => {
+          const words = item.label.trim().split(/\s+/).filter(Boolean);
+          const num = String(itemIndex + 1).padStart(2, "0");
+          return (
+            <>
+              <button type="button" data-nav-button data-target={item.id}>
+                <span class="nav__num font-xs sans">{num}</span>{" "}
+                {words.map((word, wordIndex) => (
+                  <>
+                    {wordIndex > 0 ? " " : null}
+                    <span class="nav__word font-s">{word}</span>
+                  </>
+                ))}
+              </button>{" "}
+            </>
+          );
+        })}
 
-    <button type="button" data-nav-button data-target="visuals">
-      <span class="nav__num font-xs sans">{String(navItems.length + 1).padStart(2, "0")}</span>{" "}
-      <span class="nav__word font-s">Visuals</span>
-    </button>
-  </menu>
-  <div class="nav__underlines" data-nav-underlines aria-hidden="true"></div>
+        <button type="button" data-nav-button data-target="visuals">
+          <span class="nav__num font-xs sans">{String(navItems.length + 1).padStart(2, "0")}</span>{" "}
+          <span class="nav__word font-s">Visuals</span>
+        </button>
+      </menu>
+      <div class="nav__underlines" data-nav-underlines aria-hidden="true"></div>
+    </>
+  )}
   <div class="book__indications">
-    <div data-visuals-toggle><Book /><BookVisuals /></div>
-    <div class="indications font-xs sans">
-      Press 'F' on your keyboard to view the featured work. Press 'T' to return to the text page.
-    </div>
+    {isProjectNav ? (
+      <button type="button" class="nav__back" data-nav-back aria-label="Go to the previous page">
+        <Book />
+      </button>
+    ) : (
+      <>
+        <div class="nav__visuals-book" data-visuals-toggle>
+          <Book />
+          <BookVisuals />
+        </div>
+        <button
+          type="button"
+          class="nav__visuals-mobile"
+          data-visuals-toggle
+          aria-pressed="false"
+          aria-label="View featured visuals"
+        >
+          <span class="nav__visuals-open font-s">Visuals</span>
+          <span class="nav__visuals-close font-s">Close</span>
+        </button>
+      </>
+    )}
+    {isProjectNav ? (
+      <div class="indications font-xs sans hide-mobile">
+        Press 'B' on your keyboard to go to the previous page.
+      </div>
+    ) : (
+      <div class="indications font-xs sans hide-mobile">
+        Press 'F' on your keyboard to view the featured work. Press 'T' to return to the text page.
+      </div>
+    )}
   </div>
 </nav>
 
@@ -76,6 +114,16 @@ const navItems = (items.length > 0 ? items : fallbackItems)
 
     const navRoot = document.querySelector<HTMLElement>("[data-nav]");
     const underlineLayer = document.querySelector<HTMLElement>("[data-nav-underlines]");
+    const isProjectNav = navRoot?.dataset.nav === "project";
+
+    const goBack = () => {
+      if (window.history.length > 1) window.history.back();
+      else window.location.assign("/");
+    };
+
+    document.querySelectorAll<HTMLElement>("[data-nav-back]").forEach((el) => {
+      el.addEventListener("click", goBack, { signal });
+    });
 
     const syncActiveUnderline = () => {
       if (!navRoot || !underlineLayer) return;
@@ -143,11 +191,7 @@ const navItems = (items.length > 0 ? items : fallbackItems)
           if (!targetId) return;
 
           if (targetId === "visuals") {
-            const root = document.documentElement;
-            const wasShowing = root.classList.contains("show-visuals");
-            root.classList.toggle("show-visuals");
-            if (wasShowing) scheduleUpdate();
-            else setActiveTarget(targetId);
+            toggleVisuals();
             return;
           }
 
@@ -160,12 +204,21 @@ const navItems = (items.length > 0 ? items : fallbackItems)
       );
     });
 
+    const syncVisualsToggle = () => {
+      const showing = document.documentElement.classList.contains("show-visuals");
+      document.querySelectorAll<HTMLElement>("[data-visuals-toggle]").forEach((el) => {
+        el.setAttribute("aria-pressed", showing ? "true" : "false");
+        el.setAttribute("aria-label", showing ? "Close featured visuals" : "View featured visuals");
+      });
+    };
+
     const toggleVisuals = () => {
       const root = document.documentElement;
       const wasShowing = root.classList.contains("show-visuals");
       root.classList.toggle("show-visuals");
       if (wasShowing) scheduleUpdate();
       else setActiveTarget("visuals");
+      syncVisualsToggle();
     };
 
     const hideVisuals = () => {
@@ -173,11 +226,26 @@ const navItems = (items.length > 0 ? items : fallbackItems)
       if (!root.classList.contains("show-visuals")) return;
       root.classList.remove("show-visuals");
       scheduleUpdate();
+      syncVisualsToggle();
     };
 
     document.querySelectorAll<HTMLElement>("[data-visuals-toggle]").forEach((el) => {
       el.addEventListener("click", () => toggleVisuals(), { signal });
     });
+    syncVisualsToggle();
+
+    document.addEventListener(
+      "click",
+      (e) => {
+        if (!document.documentElement.classList.contains("show-visuals")) return;
+        const target = e.target as Element | null;
+        if (!target) return;
+        if (target.closest("[data-visuals-toggle]") || target.closest("[data-nav]")) return;
+        if (target.closest(".featured-carousel__item__content")) return;
+        hideVisuals();
+      },
+      { signal }
+    );
 
     window.addEventListener(
       "keydown",
@@ -189,6 +257,13 @@ const navItems = (items.length > 0 ? items : fallbackItems)
         if (e.metaKey || e.ctrlKey || e.altKey) return;
 
         const key = e.key.toLowerCase();
+        if (isProjectNav) {
+          if (key === "b") {
+            e.preventDefault();
+            goBack();
+          }
+          return;
+        }
         if (key === "f") {
           e.preventDefault();
           toggleVisuals();

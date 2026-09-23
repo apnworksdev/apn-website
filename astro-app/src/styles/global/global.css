@@ -53,6 +53,71 @@ html {
   overflow-x: hidden;
 }
 
+.home-backdrop {
+  display: none;
+  opacity: 0.06;
+}
+
+html.has-home-backdrop .home-backdrop {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+html.has-home-backdrop .container {
+  position: relative;
+  z-index: 1;
+}
+
+html:not(.page-ready) .container {
+  opacity: 0;
+  pointer-events: none;
+}
+
+html.page-ready:not(.page-leaving):not(.home-departing):not(.page-swap) .container {
+  opacity: 1;
+  transition: opacity var(--page-fade) var(--transition-effect);
+}
+
+html.page-leaving .container {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--page-fade) var(--transition-effect);
+}
+
+html.home-departing .container {
+  opacity: 0.06;
+  pointer-events: none;
+  transition: opacity var(--page-fade) var(--transition-effect);
+}
+
+html.page-swap .container {
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
+}
+
+html.home-returning .home-backdrop {
+  opacity: 1;
+  transition: opacity var(--page-fade) var(--transition-effect);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.home-returning .home-backdrop,
+  html.page-ready:not(.page-leaving):not(.home-departing):not(.page-swap) .container,
+  html.page-leaving .container,
+  html.home-departing .container {
+    transition: none;
+  }
+}
+
+[data-home-layer] {
+  position: relative;
+}
+
 ul,
 ol,
 menu {

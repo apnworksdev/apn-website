@@ -1,0 +1,119 @@
+---
+import type { CaseStudyBlockItem, CaseStudyModule, MediaItem, Project } from "../../utils/sanity";
+import PortableText from "../PortableText.astro";
+import CaseStudyMediaItem from "./CaseStudyMediaItem.astro";
+
+interface Props {
+  module: CaseStudyModule;
+  project: Project;
+}
+
+const { module, project } = Astro.props;
+const title = project.title ?? "";
+
+function aspect(item?: MediaItem): string | undefined {
+  const w = item?.dimensions?.width;
+  const h = item?.dimensions?.height;
+  if (w && h && h > 0) return String(w / h);
+  return undefined;
+}
+---
+
+{module._type === "caseStudyContentBlock" && module.items && module.items.length > 0 && (
+  <section class="case-study__block" data-case-study-block>
+    {module.items.map((item: CaseStudyBlockItem) => {
+      if (item._type === "caseStudyText" && item.text) {
+        return (
+          <div class="case-study__item" data-type="text" data-split="true" data-index={item._key}>
+            <PortableText class="case-study__text font-m" content={item.text} />
+          </div>
+        );
+      }
+
+      if (item._type === "caseStudyMedia" && item.media?.[0]) {
+        const fit = item.fit === "outer" ? "outer" : "inner";
+        const mediaItem = item.media[0];
+        return (
+          <div class="case-study__item case-study__item--atomic" data-type="media">
+            <figure
+              class={`case-study__figure case-study__figure--${fit}`}
+              data-fit={fit}
+              data-aspect={aspect(mediaItem)}
+            >
+              <CaseStudyMediaItem
+                mediaItem={mediaItem}
+                altFallback={title}
+                sizes={
+                  fit === "outer"
+                    ? "(max-width: 820px) 350px, (max-width: 1250px) 50vw, 90vw"
+                    : "(max-width: 820px) 350px, (max-width: 1250px) 50vw, 42vw"
+                }
+              />
+              {item.caption && (
+                <figcaption class="case-study__caption font-s">{item.caption}</figcaption>
+              )}
+            </figure>
+          </div>
+        );
+      }
+
+      if (item._type === "caseStudyTextMedia" && item.text && item.media?.[0]) {
+        return (
+          <div class="case-study__item case-study__item--atomic" data-type="text-media">
+            <div
+              class="case-study__text-media"
+              data-media-position={item.mediaPosition ?? "left"}
+            >
+              <figure class="case-study__text-media-figure" data-aspect={aspect(item.media[0])}>
+                <CaseStudyMediaItem
+                  mediaItem={item.media[0]}
+                  altFallback={title}
+                  sizes="(max-width: 820px) 120px, (max-width: 1250px) 25vw, 16vw"
+                />
+              </figure>
+              <PortableText class="case-study__text font-m" content={item.text} />
+            </div>
+          </div>
+        );
+      }
+
+      if (item._type === "caseStudyMediaGrid" && item.media && item.media.length > 0) {
+        const cols = item.columns ?? 2;
+        return (
+          <div class="case-study__item case-study__item--atomic" data-type="media-grid">
+            <div class="case-study__media-grid" style={`--case-study-grid-cols: ${cols}`}>
+              {item.media.map((mediaItem) => (
+                <figure class="case-study__figure">
+                  <CaseStudyMediaItem
+                    mediaItem={mediaItem}
+                    altFallback={title}
+                    sizes={`(max-width: 820px) 350px, (max-width: 1250px) 50vw, ${Math.round(42 / cols)}vw`}
+                  />
+                </figure>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      return null;
+    })}
+  </section>
+)}
+
+{module._type === "caseStudySeparator" && module.media && module.media.length > 0 && (
+  <section
+    class="case-study__separator"
+    style={`--sep-count: ${Math.min(module.media.length, 4)}`}
+  >
+    {module.media.map((mediaItem) => (
+      <figure class="case-study__figure case-study__figure--separator">
+        <CaseStudyMediaItem
+          mediaItem={mediaItem}
+          altFallback={title}
+          sizes={`(max-width: 820px) 350px, (max-width: 1250px) 70vw, ${Math.round(100 / Math.min(module.media!.length, 4))}vw`}
+        />
+      </figure>
+    ))}
+  </section>
+)}

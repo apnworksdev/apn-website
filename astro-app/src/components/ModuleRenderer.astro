@@ -9,13 +9,14 @@ import FeaturedProject from "./modules/FeaturedProject.astro";
 
 interface Props {
   module: HomepageModule;
+  sectionNumber?: number | null;
 }
 
-const { module } = Astro.props;
+const { module, sectionNumber } = Astro.props;
 ---
 
 {module._type === "hero" && <Hero module={module} />}
-{module._type === "tableOfWorks" && <TableOfWorks module={module} />}
+{module._type === "tableOfWorks" && <TableOfWorks module={module} sectionNumber={sectionNumber} />}
 {module._type === "textModule" && <TextModule module={module} />}
 {module._type === "contactModule" && <ContactModule module={module} />}
 {module._type === "dataBox" && <DataBox module={module} />}

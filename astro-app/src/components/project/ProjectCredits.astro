@@ -1,0 +1,103 @@
+---
+import type { Project } from "../../utils/sanity";
+import PortableText from "../PortableText.astro";
+
+interface Props {
+  project: Project;
+  class?: string;
+  showSeparator?: boolean;
+}
+
+const { project, class: className, showSeparator = true } = Astro.props;
+
+const hasCredits =
+  project?.year ||
+  project?.client ||
+  project?.designedBy ||
+  project?.typeface ||
+  project?.animationBy ||
+  project?.location ||
+  project?.techStack ||
+  project?.services ||
+  (project?.customCredits && project.customCredits.length > 0) ||
+  (project?.links && project.links.length > 0);
+
+if (!hasCredits) {
+  return null;
+}
+---
+
+<div class:list={["project-credits", className]}>
+  {showSeparator && (
+    <div class="project-credits__separator">
+      <span class="project-credits__separator-text font-l">* * *</span>
+    </div>
+  )}
+
+  <dl class="project-credits__list font-s">
+    {project?.year && (
+      <div class="project-credits__item">
+        <dt class="small-caps">Year</dt>
+        <dd>{project.year}</dd>
+      </div>
+    )}
+    {project?.client && (
+      <div class="project-credits__item">
+        <dt class="small-caps">Client</dt>
+        <dd>{project.client}</dd>
+      </div>
+    )}
+    {project?.designedBy && (
+      <div class="project-credits__item">
+        <dt class="small-caps">Designed By</dt>
+        <dd>{project.designedBy}</dd>
+      </div>
+    )}
+    {project?.typeface && (
+      <div class="project-credits__item">
+        <dt class="small-caps">Typeface</dt>
+        <dd>{project.typeface}</dd>
+      </div>
+    )}
+    {project?.animationBy && (
+      <div class="project-credits__item">
+        <dt class="small-caps">Animation By</dt>
+        <dd>{project.animationBy}</dd>
+      </div>
+    )}
+    {project?.location && (
+      <div class="project-credits__item">
+        <dt class="small-caps">Located In</dt>
+        <dd>{project.location}</dd>
+      </div>
+    )}
+    {project?.techStack && (
+      <div class="project-credits__item">
+        <dt class="small-caps">Tech Stack</dt>
+        <dd>{project.techStack}</dd>
+      </div>
+    )}
+    {project?.services && (
+      <div class="project-credits__item">
+        <dt class="small-caps">Services</dt>
+        <dd>{project.services}</dd>
+      </div>
+    )}
+    {project?.customCredits?.map((credit) => (
+      <div class="project-credits__item">
+        {credit.credit && <dt class="small-caps">{credit.credit}</dt>}
+        {credit.text && (
+          <dd>
+            <PortableText content={credit.text} />
+          </dd>
+        )}
+      </div>
+    ))}
+  </dl>
+
+  {project?.links && project.links.length > 0 && (
+    <div class="project-credits__links sans font-s">
+      <PortableText content={project.links} />
+    </div>
+  )}
+</div>
