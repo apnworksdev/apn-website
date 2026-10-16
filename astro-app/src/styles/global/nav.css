@@ -153,6 +153,7 @@ html.show-project-hover .project-hover-preview {
 
 .project-hover-preview__image {
   width: 100%;
+  filter: grayscale(100%);
 }
 
 .project-hover-preview__text {
