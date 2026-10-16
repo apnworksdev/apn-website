@@ -28,13 +28,6 @@ const mediaProjection = `{
   }
 }`;
 
-export async function getProjectSlugs(): Promise<string[]> {
-  const slugs = await sanityClient.fetch<Array<string | null>>(
-    groq`*[_type == "project" && defined(slug.current)].slug.current`
-  );
-  return slugs.filter((s): s is string => Boolean(s));
-}
-
 const caseStudyModulesProjection = `modules[]{
   _key,
   _type,

@@ -18,5 +18,6 @@ export const sanityClient = createClient({
   projectId,
   dataset,
   apiVersion: "2024-12-08",
-  useCdn: true,
+  // The API CDN can serve a snapshot from before the latest publish.
+  useCdn: false,
 });

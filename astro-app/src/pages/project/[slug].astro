@@ -1,9 +1,8 @@
 ---
-import type { InferGetStaticParamsType } from "astro";
 import Layout from "../../layouts/Layout.astro";
 import '../../styles/pages/project.css';
 import '../../styles/pages/caseStudy.css';
-import { getProject, getProjectSlugs } from "../../utils/sanity";
+import { getProject } from "../../utils/sanity";
 import { urlFor } from "../../utils/image";
 import type { ImageAsset } from "@sanity/types";
 import type { FileAsset } from "../../utils/sanity";
@@ -12,15 +11,17 @@ import PortableText from "../../components/PortableText.astro";
 import CaseStudyModuleRenderer from "../../components/project/CaseStudyModuleRenderer.astro";
 import ProjectCredits from "../../components/project/ProjectCredits.astro";
 
-export async function getStaticPaths() {
-  const slugs = await getProjectSlugs();
-  return slugs.map((slug) => ({ params: { slug } }));
+const slug = Astro.params.slug;
+
+if (!slug) {
+  return new Response(null, { status: 404, statusText: "Not found" });
 }
 
-type Params = InferGetStaticParamsType<typeof getStaticPaths>;
-const { slug } = Astro.params as Params;
-
 const project = await getProject(slug);
+
+if (!project) {
+  return new Response(null, { status: 404, statusText: "Not found" });
+}
 const isCaseStudy = project?.layout === "caseStudy";
 const gallery = project?.media;
 const caseStudyModules = project?.modules ?? [];

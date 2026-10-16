@@ -1,5 +1,7 @@
 [build]
-  command = "npm run build --workspace=astro-app"
+  # The Netlify adapter writes the server function under astro-app/.
+  # Netlify reads that function from .netlify/v1 at the repository root.
+  command = "npm run build --workspace=astro-app && mkdir -p .netlify/v1 && cp -R astro-app/.netlify/v1/. .netlify/v1/"
   publish = "astro-app/dist"
 
 [[headers]]
