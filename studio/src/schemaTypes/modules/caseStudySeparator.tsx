@@ -11,7 +11,7 @@ export default defineType({
       name: 'media',
       title: 'Media',
       description: 'Full-width row between content blocks. 1 to 4 items.',
-      type: 'mediaArray',
+      type: 'caseStudyMediaArray',
       validation: (rule) => rule.required().min(1).max(4),
     }),
   ],

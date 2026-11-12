@@ -183,7 +183,7 @@ input:-webkit-autofill:active {
 }
 
 .small-caps-span {
-  display: inline-flex;
+  display: inline;
 }
 
 .small-caps strong,

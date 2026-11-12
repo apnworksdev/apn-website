@@ -43,6 +43,16 @@ export default defineType({
       group: 'modules',
     }),
     defineField({
+      name: 'favicon',
+      title: 'Favicon',
+      description: 'Icon shown in the browser tab. SVG, PNG, or ICO.',
+      type: 'file',
+      options: {
+        accept: 'image/svg+xml,image/png,image/x-icon,image/vnd.microsoft.icon,image/webp',
+      },
+      group: 'info',
+    }),
+    defineField({
       name: 'credits',
       title: 'Credits',
       type: 'blockContent',
@@ -63,6 +73,20 @@ export default defineType({
               title: 'Image',
               type: 'image',
               validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+              name: 'size',
+              title: 'Size',
+              type: 'string',
+              options: {
+                list: [
+                  {title: 'Small', value: 'small'},
+                  {title: 'Medium', value: 'medium'},
+                  {title: 'Large', value: 'large'},
+                ],
+                layout: 'radio',
+              },
+              initialValue: 'medium',
             }),
             defineField({
               name: 'top',
@@ -90,6 +114,18 @@ export default defineType({
               initialValue: 0,
             }),
           ],
+          preview: {
+            select: {
+              media: 'image',
+              size: 'size',
+              side: 'side',
+            },
+            prepare({size, side, media}) {
+              const sizeLabel = size === 'small' ? 'Small' : size === 'large' ? 'Large' : 'Medium'
+              const sideLabel = side === 'right' ? 'Right' : 'Left'
+              return {title: `${sizeLabel} · ${sideLabel}`, media}
+            },
+          },
         }),
       ],
       group: 'stamps',

@@ -90,7 +90,7 @@ const navItems = (items.length > 0 ? items : fallbackItems)
     )}
     {isProjectNav ? (
       <div class="indications font-xs sans hide-mobile">
-        Press 'B' on your keyboard to go to the previous page.
+        Press 'B' or Esc on your keyboard to go to the previous page.
       </div>
     ) : (
       <div class="indications font-xs sans hide-mobile">
@@ -258,7 +258,7 @@ const navItems = (items.length > 0 ? items : fallbackItems)
 
         const key = e.key.toLowerCase();
         if (isProjectNav) {
-          if (key === "b") {
+          if (key === "b" || key === "escape") {
             e.preventDefault();
             goBack();
           }

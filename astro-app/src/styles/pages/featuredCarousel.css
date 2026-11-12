@@ -56,6 +56,7 @@ html.show-visuals .featured-carousel__container {
   width: auto;
   height: auto;
   object-fit: contain;
+  box-shadow: 0 0 0 .5px var(--black);
 }
 
 .featured-carousel__item.active {

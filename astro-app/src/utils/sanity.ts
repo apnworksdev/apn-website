@@ -11,9 +11,13 @@ const mediaProjection = `{
     asset,
     crop,
     hotspot,
+    grayscale,
+    border,
     "dimensions": asset->metadata.dimensions
   },
   _type == "file" => {
+    grayscale,
+    border,
     "asset": asset->{
       _id,
       url,
@@ -65,6 +69,7 @@ export async function getProject(slug: string): Promise<Project | null> {
       _id,
       title,
       layout,
+      listOnly,
       slug,
       thumbnail,
       excerpt,
@@ -99,7 +104,8 @@ export async function getFeaturedCarousel(): Promise<FeaturedCarousel | null> {
         project->{
           _id,
           title,
-          slug
+          slug,
+          listOnly
         },
         label,
         media[]{
@@ -130,6 +136,12 @@ export async function getFeaturedCarousel(): Promise<FeaturedCarousel | null> {
   );
 }
 
+export async function getFavicon(): Promise<{ url: string; mimeType?: string } | null> {
+  return await sanityClient.fetch(
+    groq`*[_type == "homepage"][0].favicon.asset->{ url, mimeType }`
+  );
+}
+
 export async function getHomepage(): Promise<Homepage | null> {
   return await sanityClient.fetch(
     groq`*[_type == "homepage"][0]{
@@ -138,6 +150,7 @@ export async function getHomepage(): Promise<Homepage | null> {
       stamps[]{
         _key,
         image,
+        size,
         top,
         side,
         sideOffset
@@ -157,7 +170,8 @@ export async function getHomepage(): Promise<Homepage | null> {
             _id,
             title,
             slug,
-            thumbnail,
+            listOnly,
+            thumbnail[]${mediaProjection},
             excerpt,
             description,
             year,
@@ -191,6 +205,7 @@ export async function getHomepage(): Promise<Homepage | null> {
             _id,
             title,
             slug,
+            listOnly,
             thumbnail,
             description,
             designedBy
@@ -235,6 +250,7 @@ export interface Homepage {
 export interface HomepageStamp {
   _key: string;
   image?: ImageAsset & { alt?: string };
+  size?: "small" | "medium" | "large";
   top?: number;
   side?: "left" | "right";
   sideOffset?: number;
@@ -376,6 +392,7 @@ export interface Project {
   _id: string;
   title?: string;
   layout?: "standard" | "caseStudy";
+  listOnly?: boolean;
   slug?: Slug;
   thumbnail?: MediaItem[];
   excerpt?: string;
@@ -408,6 +425,8 @@ export interface MediaItem {
   _key?: string;
   asset?: ImageAsset | FileAsset;
   alt?: string;
+  grayscale?: boolean;
+  border?: boolean;
   dimensions?: {
     width?: number;
     height?: number;
@@ -425,7 +444,7 @@ export interface FeaturedCarousel {
 
 export interface FeaturedCarouselModule {
   _key: string;
-  project?: Pick<Project, "_id" | "title" | "slug">;
+  project?: Pick<Project, "_id" | "title" | "slug" | "listOnly">;
   label?: PortableTextBlock[];
   media?: MediaItem[];
   rotation?: string;

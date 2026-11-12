@@ -17,6 +17,15 @@ interface Props {
 
 const { content, class: className, strongFirstLetters = false } = Astro.props;
 
+function formatClasses(isBold: boolean, isItalic: boolean): string {
+  const classes: string[] = [];
+  if (isBold || isItalic) classes.push("small-caps", "small-caps-span");
+  if (isBold) classes.push("small-caps-span-bold");
+  else if (isItalic) classes.push("small-caps-span-italic");
+  else classes.push("regular-span");
+  return classes.join(" ");
+}
+
 // Normalize content to always be an array
 const contentArray = Array.isArray(content) ? content : content ? [content] : [];
 
@@ -80,20 +89,13 @@ if (contentArray.length === 0) {
                 </>
               ) : (
                 <>
-                  {child.isBold && child.isItalic ? (
-                    <strong><em>{child.text}</em></strong>
-                  ) : child.isBold ? (
-                    <strong>{child.text}</strong>
-                  ) : child.isItalic ? (
-                    <em>{child.text}</em>
-                  ) : (
-                    child.text
-                  )}
+                  {child.isBold ? <strong>{child.text}</strong> : child.text}
                 </>
               );
               return (
                 <a
                   href={child.href}
+                  class={child.isBold || child.isItalic ? formatClasses(child.isBold, child.isItalic) : undefined}
                   {...(child.isExternal
                     ? { target: "_blank", rel: "noopener noreferrer" }
                     : {})}
@@ -102,18 +104,7 @@ if (contentArray.length === 0) {
                 </a>
               );
             }
-            // Determine class based on formatting
-            const classes: string[] = [];
-            if (child.isBold || child.isItalic) {
-              classes.push("small-caps small-caps-span");
-            }
-            if (child.isBold) {
-              classes.push("small-caps-span-bold");
-            } else if (child.isItalic) {
-              classes.push("small-caps-span-italic");
-            } else {
-              classes.push("regular-span");
-            }
+            const classes = formatClasses(child.isBold, child.isItalic);
 
             const formattedContent = child.parts ? (
               <>
@@ -134,7 +125,7 @@ if (contentArray.length === 0) {
             );
 
             return (
-              <span class={classes.join(" ")}>{formattedContent}</span>
+              <span class={classes}>{formattedContent}</span>
             );
           })}
         </Tag>

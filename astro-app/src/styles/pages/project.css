@@ -77,13 +77,16 @@
 .project__video {
   --project-media-max-height: 70dvh;
   line-height: 0;
-  border: 0.5px solid var(--black);
   position: sticky;
   margin: 0 auto;
   width: fit-content;
   height: fit-content;
   max-width: min(var(--project-media-max-width), calc(100vw - var(--project-media-inline-gutter)));
   max-height: var(--project-media-max-height);
+}
+
+.project__video video {
+  border: 0.5px solid var(--black);
 }
 
 .project__video-element {
@@ -114,10 +117,6 @@
 .project__credits-separator {
   line-height: normal;
   margin-bottom: var(--separator-large);
-}
-
-.project__credits {
-  line-height: normal;
 }
 
 .project__credits-separator-text {

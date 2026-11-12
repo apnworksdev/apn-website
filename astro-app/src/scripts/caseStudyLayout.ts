@@ -41,6 +41,64 @@ function lineHeightOf(el: HTMLElement): number {
   return lh > 0 ? lh : 16;
 }
 
+function clearBaselineSnap(block: HTMLElement): void {
+  for (const item of block.querySelectorAll<HTMLElement>(".case-study__item")) {
+    item.style.paddingTop = "";
+  }
+}
+
+function lineBoxTop(el: HTMLElement): number | null {
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  let node = walker.nextNode();
+  while (node) {
+    const value = node.textContent ?? "";
+    if (value.trim()) {
+      const range = document.createRange();
+      range.setStart(node, 0);
+      range.setEnd(node, Math.min(1, value.length));
+      const rect = range.getClientRects()[0];
+      if (rect && rect.height > 0) return rect.top;
+    }
+    node = walker.nextNode();
+  }
+  return null;
+}
+
+function alignBaselines(col0: HTMLElement, col1: HTMLElement): void {
+  const sample =
+    col0.querySelector<HTMLElement>(".case-study__text") ??
+    col1.querySelector<HTMLElement>(".case-study__text");
+  if (!sample) return;
+  const baseline = lineHeightOf(sample);
+  if (baseline <= 0) return;
+
+  let origin = Infinity;
+  for (const col of [col0, col1]) {
+    for (const item of col.querySelectorAll<HTMLElement>(":scope > .case-study__item")) {
+      const text = item.querySelector<HTMLElement>(".case-study__text");
+      if (!text) continue;
+      const top = lineBoxTop(text);
+      if (top != null && top < origin) origin = top;
+    }
+  }
+  if (!Number.isFinite(origin)) return;
+
+  for (const col of [col0, col1]) {
+    for (const item of [...col.children]) {
+      if (!(item instanceof HTMLElement) || !item.classList.contains("case-study__item")) continue;
+      const text = item.querySelector<HTMLElement>(".case-study__text");
+      if (!text) continue;
+      const top = lineBoxTop(text);
+      if (top == null) continue;
+      let remainder = (top - origin) % baseline;
+      if (remainder < 0) remainder += baseline;
+      const intoNext = baseline - remainder;
+      if (remainder < 0.75 || intoNext < 0.75) continue;
+      item.style.paddingTop = `${intoNext}px`;
+    }
+  }
+}
+
 function snapDown(value: number, unit: number): number {
   if (unit <= 0) return value;
   return Math.max(unit, Math.floor((value + 0.01) / unit) * unit);
@@ -257,6 +315,7 @@ function layoutPair(block: HTMLElement, items: HTMLElement[]): void {
   col0.append(items[0]!);
   col1.append(items[1]!);
   stretchOuters(block, col0, col1);
+  alignBaselines(col0, col1);
 }
 
 function layoutPack(block: HTMLElement, items: HTMLElement[]): void {
@@ -287,9 +346,11 @@ function layoutPack(block: HTMLElement, items: HTMLElement[]): void {
   for (const item of items.slice(0, split)) col0.append(item);
   for (const item of items.slice(split)) col1.append(item);
   stretchOuters(block, col0, col1);
+  alignBaselines(col0, col1);
 }
 
 function layoutBlock(block: HTMLElement): void {
+  clearBaselineSnap(block);
   const items = itemsOf(block);
   if (items.length === 0) return;
 

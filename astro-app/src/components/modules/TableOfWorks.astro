@@ -1,5 +1,5 @@
 ---
-import type { TableOfWorksModule } from "../../utils/sanity";
+import type { FileAsset, TableOfWorksModule } from "../../utils/sanity";
 import type { ImageAsset } from "@sanity/types";
 import { urlFor } from "../../utils/image";
 
@@ -12,7 +12,11 @@ const { module } = Astro.props;
 const STATUS_LABELS: Record<string, string> = {
   live: "Live",
   "in-progress": "In Progress",
-  "modified-by-client": "Former Version",
+  "modified-by-client": "Former",
+  archived: "Archived",
+  offline: "Offline",
+  proposal: "Proposal",
+  private: "Private",
 };
 
 function formatStatus(value: string): string {
@@ -64,15 +68,33 @@ const projects = module.projects ?? [];
 const alphaGroups = projects.length > 0 ? groupProjectsByLetter(projects) : null;
 const yearGroups = projects.length > 0 ? groupProjectsByYear(projects) : null;
 
-function previewImageUrl(project: Project): string {
-  if (
-    project.thumbnail?.[0]?._type === "image" &&
-    project.thumbnail[0].asset &&
-    !("url" in project.thumbnail[0].asset)
-  ) {
-    return urlFor(project.thumbnail[0].asset as ImageAsset).width(640).url();
+function projectPageHref(project: Project): string {
+  if (project.listOnly || !project.slug?.current) return "";
+  return `/project/${project.slug.current}`;
+}
+
+function previewMedia(project: Project): { image: string; video: string; poster: string } {
+  const item = project.thumbnail?.[0];
+  if (!item?.asset) return { image: "", video: "", poster: "" };
+
+  if (item._type === "image" && !("url" in item.asset)) {
+    return {
+      image: urlFor(item.asset as ImageAsset).width(640).url(),
+      video: "",
+      poster: "",
+    };
   }
-  return "";
+
+  if (item._type === "file" && "url" in item.asset) {
+    const posterAsset = item.poster?.asset;
+    return {
+      image: "",
+      video: (item.asset as FileAsset).url,
+      poster: posterAsset ? urlFor(posterAsset as ImageAsset).width(640).url() : "",
+    };
+  }
+
+  return { image: "", video: "", poster: "" };
 }
 ---
 
@@ -110,25 +132,32 @@ function previewImageUrl(project: Project): string {
           <div class="table-of-works__group" data-letter={letter}>
             <h3 class="table-of-works__letter">{letter}.</h3>
             <div class="table-of-works__grid">
-              {alphaGroups.get(letter)!.map((project) => (
-                <a
-                  href={project.slug?.current ? `/project/${project.slug.current}` : "#"}
-                  class="table-of-works__item"
-                  data-project-preview
-                  data-preview-title={project.title ?? ""}
-                  data-preview-excerpt={project.excerpt ?? project.description ?? ""}
-                  data-preview-image={previewImageUrl(project)}
-                >
-                  <div class="table-of-works__project-title-status">
-                    {project.title && (
-                      <h3 class="table-of-works__project-title">{project.title}</h3>
-                    )}
-                    {project.status && (
-                      <p class="table-of-works__project-status">{formatStatus(project.status)}</p>
-                    )}
-                  </div>
-                </a>
-              ))}
+              {alphaGroups.get(letter)!.map((project) => {
+                const preview = previewMedia(project);
+                const href = projectPageHref(project);
+                const Tag = href ? "a" : "div";
+                return (
+                  <Tag
+                    href={href || undefined}
+                    class="table-of-works__item"
+                    data-project-preview
+                    data-preview-title={project.title ?? ""}
+                    data-preview-excerpt={project.excerpt ?? project.description ?? ""}
+                    data-preview-image={preview.image}
+                    data-preview-video={preview.video}
+                    data-preview-poster={preview.poster}
+                  >
+                    <div class="table-of-works__project-title-status">
+                      {project.title && (
+                        <h3 class="table-of-works__project-title">{project.title}</h3>
+                      )}
+                      {project.status && (
+                        <p class="table-of-works__project-status">{formatStatus(project.status)}</p>
+                      )}
+                    </div>
+                  </Tag>
+                );
+              })}
             </div>
           </div>
         ))}
@@ -141,25 +170,32 @@ function previewImageUrl(project: Project): string {
         <div class="table-of-works__group" data-letter={year}>
           <h3 class="table-of-works__letter">{year}.</h3>
           <div class="table-of-works__grid">
-            {yearGroups.get(year)!.map((project) => (
-              <a
-                href={project.slug?.current ? `/project/${project.slug.current}` : "#"}
-                class="table-of-works__item"
-                data-project-preview
-                data-preview-title={project.title ?? ""}
-                data-preview-excerpt={project.excerpt ?? project.description ?? ""}
-                data-preview-image={previewImageUrl(project)}
-              >
-                <div class="table-of-works__project-title-status">
-                  {project.title && (
-                    <h3 class="table-of-works__project-title">{project.title}</h3>
-                  )}
-                  {project.status && (
-                    <p class="table-of-works__project-status">{formatStatus(project.status)}</p>
-                  )}
-                </div>
-              </a>
-            ))}
+            {yearGroups.get(year)!.map((project) => {
+              const preview = previewMedia(project);
+              const href = projectPageHref(project);
+              const Tag = href ? "a" : "div";
+              return (
+                <Tag
+                  href={href || undefined}
+                  class="table-of-works__item"
+                  data-project-preview
+                  data-preview-title={project.title ?? ""}
+                  data-preview-excerpt={project.excerpt ?? project.description ?? ""}
+                  data-preview-image={preview.image}
+                  data-preview-video={preview.video}
+                  data-preview-poster={preview.poster}
+                >
+                  <div class="table-of-works__project-title-status">
+                    {project.title && (
+                      <h3 class="table-of-works__project-title">{project.title}</h3>
+                    )}
+                    {project.status && (
+                      <p class="table-of-works__project-status">{formatStatus(project.status)}</p>
+                    )}
+                  </div>
+                </Tag>
+              );
+            })}
           </div>
         </div>
       ))}

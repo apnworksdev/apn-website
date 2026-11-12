@@ -19,7 +19,7 @@ if (!slug) {
 
 const project = await getProject(slug);
 
-if (!project) {
+if (!project || project.listOnly) {
   return new Response(null, { status: 404, statusText: "Not found" });
 }
 const isCaseStudy = project?.layout === "caseStudy";

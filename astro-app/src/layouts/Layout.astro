@@ -3,7 +3,7 @@
 import { ClientRouter } from "astro:transitions";
 import Nav from "../components/global/Nav.astro";
 import HomeLayer from "../components/HomeLayer.astro";
-import { getHomepage } from "../utils/sanity";
+import { getFavicon, getHomepage } from "../utils/sanity";
 import "../styles/global/fonts.css";
 import "../styles/global/variables.css";
 import "../styles/global/global.css";
@@ -39,7 +39,20 @@ Astro.response.headers.set(
 );
 
 const isProjectPage = navVariant === "project";
-const homepage = isProjectPage ? await getHomepage() : null;
+const [homepage, favicon] = await Promise.all([
+  isProjectPage ? getHomepage() : Promise.resolve(null),
+  getFavicon(),
+]);
+const faviconHref = favicon?.url || "/favicon.svg";
+const faviconType =
+  favicon?.mimeType ||
+  (faviconHref.endsWith(".png")
+    ? "image/png"
+    : faviconHref.endsWith(".ico")
+      ? "image/x-icon"
+      : faviconHref.endsWith(".webp")
+        ? "image/webp"
+        : "image/svg+xml");
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
 const absoluteOgImage = ogImage
@@ -58,7 +71,7 @@ const absoluteOgImage = ogImage
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type={faviconType} href={faviconHref} />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalURL} />
@@ -108,6 +121,14 @@ const absoluteOgImage = ogImage
       <aside class="project-hover-preview" data-project-hover-preview hidden>
         <div class="project-hover-preview__inner">
           <img class="project-hover-preview__image" alt="" hidden />
+          <video
+            class="project-hover-preview__image"
+            hidden
+            muted
+            loop
+            playsinline
+            preload="none"
+          ></video>
           <div class="project-hover-preview__text">
             <p class="project-hover-preview__excerpt font-s"></p>
           </div>
@@ -127,8 +148,18 @@ const absoluteOgImage = ogImage
         const { signal } = abortController;
 
         const preview = document.querySelector<HTMLElement>("[data-project-hover-preview]");
-        const img = preview?.querySelector<HTMLImageElement>(".project-hover-preview__image") ?? null;
+        const img = preview?.querySelector<HTMLImageElement>("img.project-hover-preview__image") ?? null;
+        const video =
+          preview?.querySelector<HTMLVideoElement>("video.project-hover-preview__image") ?? null;
         const excerptEl = preview?.querySelector<HTMLElement>(".project-hover-preview__excerpt") ?? null;
+
+        const stopVideo = () => {
+          if (!video) return;
+          video.pause();
+          video.hidden = true;
+          video.removeAttribute("src");
+          video.removeAttribute("poster");
+        };
 
         const clearPreview = () => {
           if (!preview) return;
@@ -139,7 +170,13 @@ const absoluteOgImage = ogImage
             img.removeAttribute("src");
             img.removeAttribute("alt");
           }
+          stopVideo();
           if (excerptEl) excerptEl.textContent = "";
+        };
+
+        const hidePreview = () => {
+          document.documentElement.classList.remove("show-project-hover");
+          video?.pause();
         };
 
         const setPreviewFromEl = (el: HTMLElement) => {
@@ -147,9 +184,11 @@ const absoluteOgImage = ogImage
           const title = el.dataset.previewTitle ?? "";
           const excerpt = el.dataset.previewExcerpt ?? "";
           const image = el.dataset.previewImage ?? "";
+          const videoUrl = el.dataset.previewVideo ?? "";
+          const poster = el.dataset.previewPoster ?? "";
 
-          if (!image && !excerpt) {
-            document.documentElement.classList.remove("show-project-hover");
+          if (!image && !videoUrl && !excerpt) {
+            hidePreview();
             return;
           }
 
@@ -165,6 +204,18 @@ const absoluteOgImage = ogImage
               img.hidden = true;
               img.removeAttribute("src");
               img.removeAttribute("alt");
+            }
+          }
+          if (video) {
+            if (videoUrl) {
+              video.hidden = false;
+              video.muted = true;
+              if (poster) video.setAttribute("poster", poster);
+              else video.removeAttribute("poster");
+              if (video.getAttribute("src") !== videoUrl) video.setAttribute("src", videoUrl);
+              video.play().catch(() => {});
+            } else {
+              stopVideo();
             }
           }
         };
@@ -186,7 +237,7 @@ const absoluteOgImage = ogImage
           (e) => {
             const toEl = e.relatedTarget as Element | null;
             if (toEl?.closest?.("[data-project-preview]")) return;
-            document.documentElement.classList.remove("show-project-hover");
+            hidePreview();
           },
           { signal }
         );
@@ -205,7 +256,7 @@ const absoluteOgImage = ogImage
           (e) => {
             const toEl = e.relatedTarget as Element | null;
             if (toEl?.closest?.("[data-project-preview]")) return;
-            document.documentElement.classList.remove("show-project-hover");
+            hidePreview();
           },
           { signal }
         );

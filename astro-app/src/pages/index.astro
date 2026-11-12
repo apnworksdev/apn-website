@@ -71,9 +71,10 @@ const ogImage =
         const isImage = firstMedia?._type === "image" && Boolean(firstMedia?.asset);
         const isFile =
           firstMedia?._type === "file" && firstMedia?.asset && "url" in firstMedia.asset;
-        const href = item.project?.slug?.current
-          ? `/project/${item.project.slug.current}`
-          : undefined;
+        const href =
+          !item.project?.listOnly && item.project?.slug?.current
+            ? `/project/${item.project.slug.current}`
+            : undefined;
         const dims =
           isImage && firstMedia && "dimensions" in firstMedia
             ? (firstMedia as { dimensions?: { width?: number; height?: number } }).dimensions

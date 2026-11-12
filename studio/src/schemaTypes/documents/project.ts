@@ -35,6 +35,14 @@ export default defineType({
       group: 'main',
     }),
     defineField({
+      name: 'listOnly',
+      title: 'No inner page',
+      description: 'Show this project in the table of works without a link or a project page.',
+      type: 'boolean',
+      initialValue: false,
+      group: 'main',
+    }),
+    defineField({
       name: 'slug',
       title: 'Slug',
       type: 'slug',
@@ -54,7 +62,11 @@ export default defineType({
         list: [
           {title: 'Live', value: 'live'},
           {title: 'In Progress', value: 'in-progress'},
-          {title: 'Modified by Client', value: 'modified-by-client'},
+          {title: 'Former', value: 'modified-by-client'},
+          {title: 'Archived', value: 'archived'},
+          {title: 'Offline', value: 'offline'},
+          {title: 'Proposal', value: 'proposal'},
+          {title: 'Private', value: 'private'},
         ],
       },
       initialValue: 'live',
@@ -202,12 +214,13 @@ export default defineType({
   preview: {
     select: {
       title: 'title',
-      author: 'author.name',
-      media: 'mainImage',
+      listOnly: 'listOnly',
     },
-    prepare(selection) {
-      const {author} = selection
-      return {...selection, subtitle: author && `by ${author}`}
+    prepare({title, listOnly}) {
+      return {
+        title,
+        subtitle: listOnly ? 'No inner page' : undefined,
+      }
     },
   },
 })

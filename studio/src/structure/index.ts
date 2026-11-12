@@ -1,5 +1,5 @@
 import type {StructureResolver} from 'sanity/structure'
-import {HomeIcon, FolderIcon, IceCreamIcon} from '@sanity/icons'
+import {HomeIcon, FolderIcon, IceCreamIcon, DocumentsIcon} from '@sanity/icons'
 
 /**
  * Studio Structure Configuration
@@ -33,6 +33,16 @@ export const structure: StructureResolver = (S) =>
             .documentId('homepage')
         ),
 
+      // Services
+      S.listItem()
+        .title('Services')
+        .icon(DocumentsIcon)
+        .child(
+          S.document()
+            .schemaType('services')
+            .documentId('services')
+        ),
+
       // Featured Carousel
       S.listItem()
         .title('Featured Carousel')
@@ -47,6 +57,6 @@ export const structure: StructureResolver = (S) =>
 
       // All other document types
       ...S.documentTypeListItems().filter(
-        (listItem) => !['project', 'homepage', 'featuredCarousel'].includes(listItem.getId() as string)
+        (listItem) => !['project', 'homepage', 'services', 'featuredCarousel'].includes(listItem.getId() as string)
       ),
     ])

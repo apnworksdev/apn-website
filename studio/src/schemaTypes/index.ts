@@ -1,6 +1,7 @@
 import project from './documents/project'
 
 import homepage from './singletons/homepage'
+import services from './singletons/services'
 import featuredCarousel from './singletons/featuredCarousel'
 
 import hero from './modules/hero'
@@ -18,6 +19,7 @@ import caseStudyMediaGrid from './modules/caseStudyMediaGrid'
 
 import blockContent from './objects/blockContent'
 import mediaArray from './objects/mediaArray'
+import caseStudyMediaArray from './objects/caseStudyMediaArray'
 import textBlock from './objects/textBlock'
 import textLinks from './objects/textLinks'
 
@@ -29,6 +31,7 @@ export const schemaTypes = [
   
   // Singletons
   homepage,
+  services,
   featuredCarousel,
 
   // Modules
@@ -48,6 +51,7 @@ export const schemaTypes = [
   // Objects
   blockContent,
   mediaArray,
+  caseStudyMediaArray,
   textBlock,
   textLinks,
 ]

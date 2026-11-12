@@ -24,7 +24,7 @@ export default defineType({
     defineField({
       name: 'media',
       title: 'Media',
-      type: 'mediaArray',
+      type: 'caseStudyMediaArray',
       validation: (rule) => rule.required().min(1),
     }),
   ],

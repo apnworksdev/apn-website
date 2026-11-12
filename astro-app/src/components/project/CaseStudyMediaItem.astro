@@ -22,14 +22,28 @@ const {
 ---
 
 {mediaItem._type === "image" && mediaItem.asset && (
-  <SanityImage
-    image={mediaItem as any}
-    alt={mediaItem.alt || altFallback}
-    width={width}
-    sizes={sizes}
-    loading="lazy"
-    class:list={["case-study__media-element", className]}
-  />
+  <span
+    class:list={[
+      "case-study__media-frame",
+      mediaItem.grayscale && "case-study__media-frame--multiply",
+    ]}
+  >
+    <span class="case-study__media-blend">
+      <SanityImage
+        image={mediaItem as any}
+        alt={mediaItem.alt || altFallback}
+        width={width}
+        sizes={sizes}
+        loading="lazy"
+        class:list={[
+          "case-study__media-element",
+          className,
+          mediaItem.grayscale && "case-study__media-element--grayscale",
+          mediaItem.border && "case-study__media-element--border",
+        ]}
+      />
+    </span>
+  </span>
 )}
 {mediaItem._type === "file" && mediaItem.asset && "url" in mediaItem.asset && (
   (() => {
@@ -39,17 +53,31 @@ const {
       posterUrl = urlFor(mediaItem.poster.asset as ImageAsset).width(2400).url();
     }
     return (
-      <video
-        autoplay
-        loop
-        preload="metadata"
-        muted
-        playsinline
-        poster={posterUrl}
-        class:list={["case-study__media-element", className]}
+      <span
+        class:list={[
+          "case-study__media-frame",
+          mediaItem.grayscale && "case-study__media-frame--multiply",
+        ]}
       >
-        <source src={fileAsset.url} type={fileAsset.mimeType || "video/mp4"} />
-      </video>
+        <span class="case-study__media-blend">
+          <video
+            autoplay
+            loop
+            preload="metadata"
+            muted
+            playsinline
+            poster={posterUrl}
+            class:list={[
+              "case-study__media-element",
+              className,
+              mediaItem.grayscale && "case-study__media-element--grayscale",
+              mediaItem.border && "case-study__media-element--border",
+            ]}
+          >
+            <source src={fileAsset.url} type={fileAsset.mimeType || "video/mp4"} />
+          </video>
+        </span>
+      </span>
     );
   })()
 )}

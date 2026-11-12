@@ -43,14 +43,17 @@ const moduleSectionNumbers = homepageModules.map((module) => {
       {homepageStamps.map((stamp) => {
         if (!stamp.image?.asset) return null;
         const side = stamp.side === "right" ? "right" : "left";
+        const size = stamp.size === "small" || stamp.size === "large" ? stamp.size : "medium";
         const top = Number.isFinite(stamp.top) ? stamp.top : 0;
         const sideOffset = Number.isFinite(stamp.sideOffset) ? stamp.sideOffset : 0;
         const style = `top:${top}%;${side}:${sideOffset}%;`;
+        const imageWidth = size === "small" ? 280 : size === "large" ? 720 : 440;
 
         return (
           <img
             class="homepage__stamp"
-            src={urlFor(stamp.image.asset as ImageAsset).width(320).url()}
+            data-size={size}
+            src={urlFor(stamp.image.asset as ImageAsset).width(imageWidth).url()}
             alt=""
             style={style}
             loading="lazy"
@@ -67,7 +70,7 @@ const moduleSectionNumbers = homepageModules.map((module) => {
       const isNavSection = Boolean(module.menuLink?.trim());
       return (
         <section id={id} class="homepage__section" data-nav-section={isNavSection ? "" : undefined}>
-          {module._type === "tableOfWorks" && moduleSectionNumbers[index] != null ? (
+          {moduleSectionNumbers[index] != null ? (
             <p class="homepage__section-number font-xs sans">
               {String(moduleSectionNumbers[index]).padStart(2, "0")}
             </p>
