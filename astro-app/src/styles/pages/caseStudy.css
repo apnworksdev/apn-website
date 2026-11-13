@@ -14,7 +14,7 @@
 
 .case-study__title {
   text-align: center;
-  padding: var(--separator-large) 0;
+  padding: 79px 0 var(--separator-large);
   margin: 0 auto;
   width: max-content;
   max-width: calc(100% - var(--gap) * 2);
@@ -33,6 +33,7 @@
   gap: var(--separator-large);
   width: calc(var(--column) * 16 + var(--gap) * 15);
   min-width: 0;
+  position: relative;
 }
 
 .case-study__block {
@@ -221,6 +222,22 @@
 
 .case-study__text-media .case-study__text {
   display: block;
+}
+
+.case-study__text-media-outside {
+  margin: 0 auto var(--gap);
+  line-height: 0;
+  width: min(100%, var(--case-study-media-max));
+  z-index: 2;
+}
+
+@media only screen and (min-width: 1251px) {
+  .case-study__text-media-outside:not([data-placed="true"]) {
+    position: absolute;
+    width: calc(var(--column) * 3 + var(--gap) * 2);
+    margin: 0;
+    visibility: hidden;
+  }
 }
 
 .case-study__continuation {

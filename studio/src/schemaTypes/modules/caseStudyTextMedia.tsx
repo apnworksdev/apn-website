@@ -9,7 +9,8 @@ export default defineType({
   fields: [
     defineField({
       name: 'media',
-      title: 'Media',
+      title: 'Media within text',
+      description: 'Floats inside the text.',
       type: 'caseStudyMediaArray',
       validation: (rule) => rule.required().max(1).min(1),
     }),
@@ -34,19 +35,56 @@ export default defineType({
       type: 'blockContent',
       validation: (rule) => rule.required(),
     }),
+    defineField({
+      name: 'outsideMedia',
+      title: 'Media outside text',
+      description: 'Optional. Sits in the margin beside the content block, outside the text.',
+      type: 'caseStudyMediaArray',
+      validation: (rule) => rule.max(1),
+    }),
+    defineField({
+      name: 'outsidePosition',
+      title: 'Outside media position',
+      description: 'Which side of the content block.',
+      type: 'string',
+      options: {
+        layout: 'radio',
+        direction: 'horizontal',
+        list: [
+          {title: 'Left of block', value: 'left'},
+          {title: 'Right of block', value: 'right'},
+        ],
+      },
+      initialValue: 'left',
+      hidden: ({parent}) => !parent?.outsideMedia?.length,
+      validation: (rule) =>
+        rule.custom((value, context) => {
+          const parent = context.parent as {outsideMedia?: unknown[]} | undefined
+          if (!parent?.outsideMedia?.length) return true
+          return value === 'left' || value === 'right' ? true : 'Choose a side'
+        }),
+    }),
   ],
   preview: {
     select: {
       text: 'text',
+      asset: 'media.0.asset',
+      mediaType: 'media.0._type',
+      outside: 'outsideMedia',
     },
-    prepare({text}) {
+    prepare({text, asset, mediaType, outside}) {
       const block = text?.[0]
       const snippet =
         block?.children
           ?.map((child: {text?: string}) => child.text)
           .join('')
           .slice(0, 40) || 'Text + media'
-      return {title: snippet, subtitle: 'Text with inline media'}
+      const hasOutside = Array.isArray(outside) && outside.length > 0
+      return {
+        title: snippet,
+        subtitle: hasOutside ? 'Text with inline and outside media' : 'Text with inline media',
+        media: mediaType === 'image' && asset ? asset : undefined,
+      }
     },
   },
 })

@@ -349,7 +349,88 @@ function layoutPack(block: HTMLElement, items: HTMLElement[]): void {
   alignBaselines(col0, col1);
 }
 
+function figuresFor(block: HTMLElement): HTMLElement[] {
+  const blockKey = block.dataset.blockKey;
+  if (!blockKey) return [];
+  const root = block.closest(".case-study__modules") ?? block;
+  return Array.from(root.querySelectorAll<HTMLElement>("[data-outside-media]")).filter(
+    (figure) => figure.dataset.outsideBlock === blockKey && !figure.closest("[data-flow-clone]"),
+  );
+}
+
+function itemFor(block: HTMLElement, figure: HTMLElement): HTMLElement | null {
+  const key = figure.dataset.outsideFor;
+  if (!key) return null;
+  for (const item of block.querySelectorAll<HTMLElement>(".case-study__item[data-key]")) {
+    if (item.dataset.key === key && !item.closest("[data-flow-clone]")) return item;
+  }
+  return null;
+}
+
+function restoreOutsideMedia(block: HTMLElement): void {
+  for (const figure of figuresFor(block)) {
+    const item = itemFor(block, figure);
+    if (!item) continue;
+    figure.style.cssText = "";
+    delete figure.dataset.placed;
+    const anchor = item.querySelector(":scope > .case-study__text-media");
+    if (figure.parentElement === item && (!anchor || figure.nextElementSibling === anchor)) continue;
+    if (anchor) item.insertBefore(figure, anchor);
+    else item.prepend(figure);
+  }
+}
+
+function parkOutsideMedia(block: HTMLElement): void {
+  const modules = block.closest(".case-study__modules");
+  if (!(modules instanceof HTMLElement)) return;
+  for (const figure of figuresFor(block)) {
+    if (figure.parentElement !== modules) modules.append(figure);
+    figure.style.position = "absolute";
+    figure.style.visibility = "hidden";
+  }
+}
+
+function prepareOutsideMedia(block: HTMLElement): void {
+  for (const figure of block.querySelectorAll<HTMLElement>("[data-flow-clone] [data-outside-media]")) {
+    figure.remove();
+  }
+  if (isColumnMode()) restoreOutsideMedia(block);
+  else parkOutsideMedia(block);
+}
+
+function placeOutsideMedia(block: HTMLElement): void {
+  if (isColumnMode()) return;
+  const modules = block.closest(".case-study__modules");
+  if (!(modules instanceof HTMLElement)) return;
+
+  const gap = tokenGap();
+  const modulesRect = modules.getBoundingClientRect();
+  const margin = (modules.clientWidth - block.clientWidth) / 2;
+  const width = Math.floor(Math.max(0, margin - gap));
+  if (width <= 0) {
+    restoreOutsideMedia(block);
+    return;
+  }
+
+  for (const figure of figuresFor(block)) {
+    const item = itemFor(block, figure);
+    const anchor = item?.querySelector<HTMLElement>(":scope > .case-study__text-media");
+    if (!anchor) continue;
+    const top = anchor.getBoundingClientRect().top - modulesRect.top;
+    const left = figure.dataset.outsidePosition === "right" ? modules.clientWidth - width : 0;
+    figure.style.position = "absolute";
+    figure.style.margin = "0";
+    figure.style.width = `${width}px`;
+    figure.style.top = `${Math.round(top)}px`;
+    figure.style.left = `${left}px`;
+    figure.style.right = "auto";
+    figure.style.visibility = "visible";
+    figure.dataset.placed = "true";
+  }
+}
+
 function layoutBlock(block: HTMLElement): void {
+  prepareOutsideMedia(block);
   clearBaselineSnap(block);
   const items = itemsOf(block);
   if (items.length === 0) return;
@@ -411,7 +492,9 @@ export function initCaseStudyLayout(): void {
     const pending = Array.from(dirty);
     dirty.clear();
     for (const block of pending) {
-      if (document.contains(block)) layoutBlock(block);
+      if (!document.contains(block)) continue;
+      layoutBlock(block);
+      placeOutsideMedia(block);
     }
   };
 

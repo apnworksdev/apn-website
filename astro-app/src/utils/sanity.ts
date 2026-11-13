@@ -49,8 +49,10 @@ const caseStudyModulesProjection = `modules[]{
       },
       _type == "caseStudyTextMedia" => {
         mediaPosition,
+        outsidePosition,
         text,
-        media[]${mediaProjection}
+        media[]${mediaProjection},
+        outsideMedia[]${mediaProjection}
       },
       _type == "caseStudyMediaGrid" => {
         columns,
@@ -357,8 +359,10 @@ export interface CaseStudyTextMediaItem {
   _key: string;
   _type: "caseStudyTextMedia";
   mediaPosition?: "left" | "right";
+  outsidePosition?: "left" | "right";
   text?: PortableTextBlock[];
   media?: MediaItem[];
+  outsideMedia?: MediaItem[];
 }
 
 export interface CaseStudyMediaGridItem {

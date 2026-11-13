@@ -16,6 +16,23 @@ html.show-visuals .featured-carousel__container {
   pointer-events: auto;
 }
 
+/* Returning from a project: hold at 0 for one frame, then fade to the resting wash. */
+html.home-arriving .featured-carousel__container {
+  opacity: 0;
+  transition: none;
+}
+
+html.home-arriving.home-arriving-on .featured-carousel__container {
+  opacity: 0.05;
+  transition: opacity var(--page-fade) var(--transition-effect);
+}
+
+html.show-visuals.home-arriving .featured-carousel__container,
+html.show-visuals.home-arriving.home-arriving-on .featured-carousel__container {
+  opacity: 1;
+  transition: opacity 0.5s var(--transition-effect);
+}
+
 .featured-carousel__item {
   opacity: 0;
   transition: opacity 0.3s var(--transition-effect);
@@ -73,4 +90,12 @@ html.show-visuals .featured-carousel__container {
 
 .featured-carousel__item__text strong {
   font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.home-arriving .featured-carousel__container,
+  html.home-arriving.home-arriving-on .featured-carousel__container {
+    opacity: 0.05;
+    transition: none;
+  }
 }

@@ -457,6 +457,7 @@ const absoluteOgImage = ogImage
         nextHtml.classList.remove("page-leaving", "home-returning", "home-departing", "page-swap");
         if (arrivingHomeFromProject) {
           nextHtml.classList.add("page-ready");
+          if (!prefersReducedMotion()) nextHtml.classList.add("home-arriving");
           nextHtml.classList.remove("is-project-page", "has-home-backdrop");
         } else {
           nextHtml.classList.remove("page-ready");
@@ -474,6 +475,17 @@ const absoluteOgImage = ogImage
           window.scrollTo(0, y);
           html.classList.add("page-ready");
           arrivingHomeFromProject = false;
+          if (html.classList.contains("home-arriving")) {
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                if (!html.classList.contains("home-arriving")) return;
+                html.classList.add("home-arriving-on");
+                window.setTimeout(() => {
+                  html.classList.remove("home-arriving", "home-arriving-on");
+                }, FADE_MS + 60);
+              });
+            });
+          }
           return;
         }
 

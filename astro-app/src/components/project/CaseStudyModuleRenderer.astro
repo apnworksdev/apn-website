@@ -20,7 +20,7 @@ function aspect(item?: MediaItem): string | undefined {
 ---
 
 {module._type === "caseStudyContentBlock" && module.items && module.items.length > 0 && (
-  <section class="case-study__block" data-case-study-block>
+  <section class="case-study__block" data-case-study-block data-block-key={module._key}>
     {module.items.map((item: CaseStudyBlockItem) => {
       if (item._type === "caseStudyText" && item.text) {
         return (
@@ -58,8 +58,26 @@ function aspect(item?: MediaItem): string | undefined {
       }
 
       if (item._type === "caseStudyTextMedia" && item.text && item.media?.[0]) {
+        const outside = item.outsideMedia?.[0];
+        const outsidePosition = item.outsidePosition === "right" ? "right" : "left";
         return (
-          <div class="case-study__item case-study__item--atomic" data-type="text-media">
+          <div class="case-study__item case-study__item--atomic" data-type="text-media" data-key={item._key}>
+            {outside && (
+              <figure
+                class="case-study__text-media-outside"
+                data-outside-media
+                data-outside-position={outsidePosition}
+                data-outside-for={item._key}
+                data-outside-block={module._key}
+                data-aspect={aspect(outside)}
+              >
+                <CaseStudyMediaItem
+                  mediaItem={outside}
+                  altFallback={title}
+                  sizes="(max-width: 1250px) 80vw, 200px"
+                />
+              </figure>
+            )}
             <div
               class="case-study__text-media"
               data-media-position={item.mediaPosition ?? "left"}

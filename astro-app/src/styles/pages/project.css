@@ -15,7 +15,7 @@
 
 .project__title {
   text-align: center;
-  padding: var(--separator-large) 0;
+  padding: 79px 0 var(--separator-large);
   margin: 0 auto;
   width: max-content;
   max-width: calc(100% - var(--gap) * 2);
@@ -27,6 +27,10 @@
   gap: 2px;
   align-items: center;
   padding-top: var(--project-title-offset);
+}
+
+.project__media > div:nth-last-child(2) {
+  margin-bottom: var(--separator-large);
 }
 
 /* Intrinsic box: height follows aspect ratio once max-width binds; max-height caps tall assets. Sticky `top` is set in JS from measured height. */
@@ -127,7 +131,7 @@
 .project__credit {
   display: flex;
   justify-content: center;
-  gap: 4px;
+  gap: 8px;
 }
 
 .project__links {
