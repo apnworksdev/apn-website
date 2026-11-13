@@ -1,0 +1,14 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getServices } from "../utils/sanity";
+import "../styles/pages/services.css";
+
+const services = await getServices();
+const title = services?.title || "Services";
+---
+
+<Layout title={title}>
+  <section class="services">
+    <h1 class="services__title font-s small-caps">{title}</h1>
+  </section>
+</Layout>

@@ -16,6 +16,10 @@ import caseStudyTextMedia from './modules/caseStudyTextMedia'
 import caseStudyContentBlock from './modules/caseStudyContentBlock'
 import caseStudySeparator from './modules/caseStudySeparator'
 import caseStudyMediaGrid from './modules/caseStudyMediaGrid'
+import servicesText from './modules/servicesText'
+import servicesList from './modules/servicesList'
+import service from './modules/service'
+import servicesEnd from './modules/servicesEnd'
 
 import blockContent from './objects/blockContent'
 import mediaArray from './objects/mediaArray'
@@ -47,6 +51,10 @@ export const schemaTypes = [
   caseStudyContentBlock,
   caseStudySeparator,
   caseStudyMediaGrid,
+  servicesText,
+  servicesList,
+  service,
+  servicesEnd,
 
   // Objects
   blockContent,

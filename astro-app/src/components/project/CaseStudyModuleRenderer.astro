@@ -57,7 +57,8 @@ function aspect(item?: MediaItem): string | undefined {
         );
       }
 
-      if (item._type === "caseStudyTextMedia" && item.text && item.media?.[0]) {
+      if (item._type === "caseStudyTextMedia" && item.text) {
+        const inline = item.media?.[0];
         const outside = item.outsideMedia?.[0];
         const outsidePosition = item.outsidePosition === "right" ? "right" : "left";
         return (
@@ -82,13 +83,15 @@ function aspect(item?: MediaItem): string | undefined {
               class="case-study__text-media"
               data-media-position={item.mediaPosition ?? "left"}
             >
-              <figure class="case-study__text-media-figure" data-aspect={aspect(item.media[0])}>
-                <CaseStudyMediaItem
-                  mediaItem={item.media[0]}
-                  altFallback={title}
-                  sizes="(max-width: 820px) 120px, (max-width: 1250px) 25vw, 16vw"
-                />
-              </figure>
+              {inline && (
+                <figure class="case-study__text-media-figure" data-aspect={aspect(inline)}>
+                  <CaseStudyMediaItem
+                    mediaItem={inline}
+                    altFallback={title}
+                    sizes="(max-width: 820px) 120px, (max-width: 1250px) 25vw, 16vw"
+                  />
+                </figure>
+              )}
               <PortableText class="case-study__text font-m" content={item.text} />
             </div>
           </div>

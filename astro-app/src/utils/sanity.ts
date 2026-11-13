@@ -144,6 +144,15 @@ export async function getFavicon(): Promise<{ url: string; mimeType?: string } |
   );
 }
 
+export async function getServices(): Promise<ServicesPage | null> {
+  return await sanityClient.fetch(
+    groq`*[_type == "services"][0]{
+      _id,
+      title
+    }`
+  );
+}
+
 export async function getHomepage(): Promise<Homepage | null> {
   return await sanityClient.fetch(
     groq`*[_type == "homepage"][0]{
@@ -247,6 +256,11 @@ export interface Homepage {
   modules?: HomepageModule[];
   credits?: PortableTextBlock[];
   stamps?: HomepageStamp[];
+}
+
+export interface ServicesPage {
+  _id: string;
+  title?: string;
 }
 
 export interface HomepageStamp {

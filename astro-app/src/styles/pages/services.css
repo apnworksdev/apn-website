@@ -1,0 +1,7 @@
+.services__title {
+  text-align: center;
+  padding: 79px 0 var(--separator-large);
+  margin: 0 auto;
+  width: max-content;
+  max-width: calc(100% - var(--gap) * 2);
+}
