@@ -32,34 +32,6 @@ export default defineType({
       type: 'blockContent',
     }),
     defineField({
-      name: 'exampleMedia',
-      title: 'Media',
-      description: 'Image or video.',
-      type: 'mediaArray',
-      fieldset: 'example',
-      validation: (rule) => rule.max(1),
-    }),
-    defineField({
-      name: 'exampleCaption',
-      title: 'Caption',
-      type: 'string',
-      fieldset: 'example',
-    }),
-    defineField({
-      name: 'media',
-      title: 'Media',
-      description: 'Image or video.',
-      type: 'mediaArray',
-      fieldset: 'media',
-      validation: (rule) => rule.max(1),
-    }),
-    defineField({
-      name: 'caption',
-      title: 'Caption',
-      type: 'string',
-      fieldset: 'media',
-    }),
-    defineField({
       name: 'clients',
       title: 'Clients',
       description: 'Mark one client as current.',
@@ -105,6 +77,41 @@ export default defineType({
         }),
     }),
     defineField({
+      name: 'exampleProject',
+      title: 'Project',
+      type: 'reference',
+      to: [{type: 'project'}],
+      fieldset: 'example',
+    }),
+    defineField({
+      name: 'exampleMedia',
+      title: 'Media',
+      description: 'Image or video.',
+      type: 'mediaArray',
+      fieldset: 'example',
+      validation: (rule) => rule.max(1),
+    }),
+    defineField({
+      name: 'exampleCaption',
+      title: 'Caption',
+      type: 'string',
+      fieldset: 'example',
+    }),
+    defineField({
+      name: 'media',
+      title: 'Media',
+      description: 'Image or video.',
+      type: 'mediaArray',
+      fieldset: 'media',
+      validation: (rule) => rule.max(1),
+    }),
+    defineField({
+      name: 'caption',
+      title: 'Caption',
+      type: 'string',
+      fieldset: 'media',
+    }),
+    defineField({
       name: 'phases',
       title: 'Phases',
       type: 'blockContent',
@@ -114,9 +121,10 @@ export default defineType({
     select: {
       intro: 'intro',
       clients: 'clients',
+      projectTitle: 'exampleProject.title',
       media: 'capitular',
     },
-    prepare({intro, clients, media}) {
+    prepare({intro, clients, projectTitle, media}) {
       const block = intro?.[0]
       const snippet =
         block?.children
@@ -124,9 +132,12 @@ export default defineType({
           .join('')
           .slice(0, 60) || 'Service'
       const current = clients?.find((client: {current?: boolean; name?: string}) => client?.current)
+      const subtitle = [projectTitle, current?.name ? `Current: ${current.name}` : undefined]
+        .filter(Boolean)
+        .join(' · ')
       return {
         title: snippet,
-        subtitle: current?.name ? `Current: ${current.name}` : 'Service',
+        subtitle: subtitle || 'Service',
         media,
       }
     },

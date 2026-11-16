@@ -1,0 +1,35 @@
+---
+import type { ImageAsset } from "@sanity/types";
+import type { FileAsset, MediaItem } from "../../utils/sanity";
+import { urlFor } from "../../utils/image";
+import SanityImage from "../SanityImage.astro";
+
+interface Props {
+  media?: MediaItem[];
+  caption?: string;
+}
+
+const { media, caption } = Astro.props;
+const item = media?.[0];
+
+if (!item && !caption) {
+  return null;
+}
+
+let posterUrl: string | undefined;
+if (item?._type === "file" && item.poster?.asset) {
+  posterUrl = urlFor(item.poster.asset as ImageAsset).width(1600).url();
+}
+---
+
+<figure>
+  {item?._type === "image" && item.asset && (
+    <SanityImage image={item} alt={item.alt || caption || ""} width={1600} />
+  )}
+  {item?._type === "file" && item.asset && "url" in item.asset && (
+    <video autoplay loop muted playsinline preload="metadata" poster={posterUrl}>
+      <source src={(item.asset as FileAsset).url} type={(item.asset as FileAsset).mimeType || "video/mp4"} />
+    </video>
+  )}
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

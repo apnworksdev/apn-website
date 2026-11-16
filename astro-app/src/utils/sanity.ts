@@ -1,5 +1,5 @@
 import type { PortableTextBlock } from "@portabletext/types";
-import type { ImageAsset, Slug } from "@sanity/types";
+import type { Image, ImageAsset, Slug } from "@sanity/types";
 import groq from "groq";
 import { sanityClient } from "./sanityClient";
 
@@ -148,7 +148,44 @@ export async function getServices(): Promise<ServicesPage | null> {
   return await sanityClient.fetch(
     groq`*[_type == "services"][0]{
       _id,
-      title
+      title,
+      modules[]{
+        _key,
+        _type,
+        _type == "servicesText" => {
+          text
+        },
+        _type == "servicesList" => {
+          services[]{
+            _key,
+            title,
+            text
+          }
+        },
+        _type == "servicesEnd" => {
+          text
+        },
+        _type == "service" => {
+          capitular,
+          intro,
+          clients[]{
+            _key,
+            name,
+            current
+          },
+          exampleProject->{
+            _id,
+            title,
+            slug,
+            listOnly
+          },
+          exampleCaption,
+          exampleMedia[]${mediaProjection},
+          caption,
+          media[]${mediaProjection},
+          phases
+        }
+      }
     }`
   );
 }
@@ -261,7 +298,65 @@ export interface Homepage {
 export interface ServicesPage {
   _id: string;
   title?: string;
+  modules?: ServicesPageModule[];
 }
+
+export interface ServicesTextModule {
+  _type: "servicesText";
+  _key: string;
+  text?: PortableTextBlock[];
+}
+
+export interface ServicesListItem {
+  _key: string;
+  title?: string;
+  text?: PortableTextBlock[];
+}
+
+export interface ServicesListModule {
+  _type: "servicesList";
+  _key: string;
+  services?: ServicesListItem[];
+}
+
+export interface ServicesEndModule {
+  _type: "servicesEnd";
+  _key: string;
+  text?: PortableTextBlock[];
+}
+
+export interface ServiceClient {
+  _key: string;
+  name?: string;
+  current?: boolean;
+}
+
+export interface ServiceProject {
+  _id: string;
+  title?: string;
+  slug?: Slug;
+  listOnly?: boolean;
+}
+
+export interface ServiceModule {
+  _type: "service";
+  _key: string;
+  capitular?: Image & { alt?: string };
+  intro?: PortableTextBlock[];
+  clients?: ServiceClient[];
+  exampleProject?: ServiceProject;
+  exampleCaption?: string;
+  exampleMedia?: MediaItem[];
+  caption?: string;
+  media?: MediaItem[];
+  phases?: PortableTextBlock[];
+}
+
+export type ServicesPageModule =
+  | ServicesTextModule
+  | ServicesListModule
+  | ServicesEndModule
+  | ServiceModule;
 
 export interface HomepageStamp {
   _key: string;

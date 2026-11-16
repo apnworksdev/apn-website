@@ -1,0 +1,22 @@
+---
+import type { ServicesListModule } from "../../utils/sanity";
+import PortableText from "../PortableText.astro";
+
+interface Props {
+  module: ServicesListModule;
+}
+
+const { module } = Astro.props;
+const items = module.services ?? [];
+---
+
+{items.length > 0 && (
+  <div class="services__list">
+    {items.map((item) => (
+      <div class="services__list-item">
+        {item.title && <h2>{item.title}</h2>}
+        {item.text && item.text.length > 0 && <PortableText content={item.text} />}
+      </div>
+    ))}
+  </div>
+)}

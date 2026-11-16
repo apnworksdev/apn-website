@@ -1,14 +1,68 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { getServices } from "../utils/sanity";
+import type { ServiceModule as ServiceModuleData, ServicesPageModule } from "../utils/sanity";
+import ServicesText from "../components/services/ServicesText.astro";
+import ServicesList from "../components/services/ServicesList.astro";
+import ServicesEnd from "../components/services/ServicesEnd.astro";
+import ServiceModule from "../components/services/ServiceModule.astro";
 import "../styles/pages/services.css";
 
 const services = await getServices();
 const title = services?.title || "Services";
+const modules = services?.modules ?? [];
+
+type PageBlock =
+  | {
+      _key: string;
+      kind: "module";
+      module: Exclude<ServicesPageModule, ServiceModuleData>;
+    }
+  | { _key: string; kind: "services"; modules: ServiceModuleData[] };
+
+const blocks: PageBlock[] = [];
+const serviceModules = modules.filter(
+  (module): module is ServiceModuleData => module._type === "service"
+);
+let servicesInserted = false;
+
+for (const module of modules) {
+  if (module._type === "service") {
+    if (!servicesInserted) {
+      blocks.push({ _key: "services-modules", kind: "services", modules: serviceModules });
+      servicesInserted = true;
+    }
+    continue;
+  }
+  blocks.push({ _key: module._key, kind: "module", module });
+}
 ---
 
 <Layout title={title}>
   <section class="services">
     <h1 class="services__title font-s small-caps">{title}</h1>
+
+    {blocks.map((block) => {
+      if (block.kind === "services") {
+        return (
+          <div class="services__modules">
+            {block.modules.map((module) => (
+              <ServiceModule module={module} />
+            ))}
+          </div>
+        );
+      }
+
+      if (block.module._type === "servicesText") {
+        return <ServicesText module={block.module} />;
+      }
+      if (block.module._type === "servicesList") {
+        return <ServicesList module={block.module} />;
+      }
+      if (block.module._type === "servicesEnd") {
+        return <ServicesEnd module={block.module} />;
+      }
+      return null;
+    })}
   </section>
 </Layout>

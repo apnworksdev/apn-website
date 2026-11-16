@@ -1,0 +1,16 @@
+---
+import type { ServicesEndModule } from "../../utils/sanity";
+import PortableText from "../PortableText.astro";
+
+interface Props {
+  module: ServicesEndModule;
+}
+
+const { module } = Astro.props;
+---
+
+{module.text && module.text.length > 0 && (
+  <div class="services__end">
+    <PortableText content={module.text} />
+  </div>
+)}

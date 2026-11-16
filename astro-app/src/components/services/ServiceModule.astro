@@ -1,0 +1,59 @@
+---
+import type { ServiceModule } from "../../utils/sanity";
+import PortableText from "../PortableText.astro";
+import SanityImage from "../SanityImage.astro";
+import ServicesMedia from "./ServicesMedia.astro";
+
+interface Props {
+  module: ServiceModule;
+}
+
+const { module } = Astro.props;
+const project = module.exampleProject;
+const projectHref =
+  project?.slug?.current && !project.listOnly ? `/project/${project.slug.current}` : undefined;
+const hasExample = Boolean(project || module.exampleMedia?.length || module.exampleCaption);
+---
+
+<article class="services__service">
+  {module.capitular?.asset && (
+    <SanityImage
+      image={module.capitular}
+      alt={module.capitular.alt || ""}
+      width={400}
+    />
+  )}
+
+  {module.intro && module.intro.length > 0 && (
+    <div class="services__intro">
+      <PortableText content={module.intro} />
+    </div>
+  )}
+
+  {module.clients && module.clients.length > 0 && (
+    <ul class="services__clients">
+      {module.clients.map((client) => (
+        <li data-current={client.current ? "true" : undefined}>{client.name}</li>
+      ))}
+    </ul>
+  )}
+
+  {hasExample && (
+    <div class="services__example">
+      {project?.title && (
+        <p>
+          {projectHref ? <a href={projectHref}>{project.title}</a> : project.title}
+        </p>
+      )}
+      <ServicesMedia media={module.exampleMedia} caption={module.exampleCaption} />
+    </div>
+  )}
+
+  <ServicesMedia media={module.media} caption={module.caption} />
+
+  {module.phases && module.phases.length > 0 && (
+    <div class="services__phases">
+      <PortableText content={module.phases} />
+    </div>
+  )}
+</article>
